@@ -1,0 +1,194 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+    paths-ignore:
+      - LICENSE
+      - README.md
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Create/recreate a release"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+    
+# env:
+#   APP_NAME: 'nimjson'
+#   NIM_VERSION: '1.6.4'
+#   MAINTAINER: 'jiro4989'
+#   DESC: 'nimjson generates nim object definitions from json documents.'
+
+jobs:
+  initialize:
+    runs-on: ubuntu-20.04
+
+    outputs:
+      RELEASE: ${{ steps.setuppush.outputs.RELEASE || steps.setupmanual.outputs.RELEASE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Display and Setup Build Args (Push)
+        id: setuppush
+        run: |
+          echo "Release: $RELEASE"
+          echo "RELEASE=$RELEASE" >> $GITHUB_OUTPUT
+        env:
+          RELEASE: ${{ startsWith(github.ref_name, 'v') }}
+        if: ${{ github.event_name == 'push' }}
+
+      - name: Display and Setup Build Args (Manual)
+        id: setupmanual
+        run: |
+          echo "RELEASE=$RELEASE" >> $GITHUB_OUTPUT
+          echo "FULL_RUN=$FULL_RUN" >> $GITHUB_OUTPUT
+        env:
+          RELEASE: ${{ github.event.inputs.release }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+
+
+  build-linux-packages:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
+          - ubuntu-22.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # - name: create sample script
+      #   run: |
+      #     mkdir -p .debpkg/usr/bin
+      #     mkdir -p .rpmpkg/usr/bin
+      #     cp -p bin/* .debpkg/usr/bin/
+      #     cp -p bin/* .rpmpkg/usr/bin/
+
+      # - uses: jiro4989/build-deb-action@v3
+      #   with:
+      #     package: ${{ env.APP_NAME }}
+      #     package_root: .debpkg
+      #     maintainer: ${{ env.MAINTAINER }}
+      #     version: ${{ github.ref }}
+      #     arch: 'amd64'
+      #     desc: '${{ env.DESC }}'
+
+      # - uses: jiro4989/build-rpm-action@v2
+      #   with:
+      #     summary: '${{ env.DESC }}'
+      #     package: ${{ env.APP_NAME }}
+      #     package_root: .rpmpkg
+      #     maintainer: ${{ env.MAINTAINER }}
+      #     version: ${{ github.ref }}
+      #     arch: 'x86_64'
+      #     desc: '${{ env.DESC }}'
+
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: artifact-deb
+      #     path: |
+      #       ./*.deb
+
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: artifact-rpm
+      #     path: |
+      #       ./*.rpm
+      #       !./*-debuginfo-*.rpm
+
+  create-release:
+    needs: 
+      - initialize
+      - build-linux-packages
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
+    runs-on: ${{ matrix.os }}
+
+    if: ${{ needs.initialize.outputs.RELEASE == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Write upload_url to file
+        run: echo '${{ steps.create-release.outputs.upload_url }}' > upload_url.txt
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: create-release
+          path: upload_url.txt
+          
+  upload-linux-packages:
+    needs:
+      - create-release
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
+          - ubuntu-22.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
+        include:
+          - pkg: deb
+            asset_content_type: application/vnd.debian.binary-package
+          - pkg: rpm
+            asset_content_type: application/x-rpm
+
+    runs-on: ${{ matrix.os }}
+
+    if: ${{ needs.initialize.outputs.RELEASE == 'true' }}
+
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact-${{ matrix.pkg }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: create-release
+
+      - id: vars
+        run: |
+          echo "::set-output name=upload_url::$(cat upload_url.txt)"
+          echo "::set-output name=asset_name::$(ls *.${{ matrix.pkg }} | head -n 1)"
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.vars.outputs.upload_url }}
+          asset_path: ${{ steps.vars.outputs.asset_name }}
+          asset_name: ${{ steps.vars.outputs.asset_name }}
+          asset_content_type: ${{ matrix.asset_content_type }}

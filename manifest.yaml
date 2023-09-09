@@ -1,0 +1,8 @@
+# These will be built in order, top to bottom
+packages:
+  uhdm:
+    url: https://github.com/chipsalliance/UHDM/archive/refs/tags/v{version}.tar.gz
+    version: 1.74
+  surelog:
+    url: https://github.com/chipsalliance/Surelog/archive/refs/tags/v{version}.tar.gz
+    version: 1.74
