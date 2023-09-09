@@ -1,0 +1,170 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+    paths-ignore:
+      - LICENSE
+      - README.md
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Create/recreate a release"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+    
+jobs:
+  initialize:
+    runs-on:
+      - ubuntu-22.04
+
+    outputs:
+      RELEASE: ${{ steps.setuppush.outputs.RELEASE || steps.setupmanual.outputs.RELEASE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Display and Setup Build Args (Push)
+        id: setuppush
+        run: |
+          echo "Release: $RELEASE"
+          echo "RELEASE=$RELEASE" >> $GITHUB_OUTPUT
+        env:
+          RELEASE: ${{ startsWith(github.ref_name, 'v') }}
+        if: ${{ github.event_name == 'push' }}
+
+      - name: Display and Setup Build Args (Manual)
+        id: setupmanual
+        run: |
+          echo "RELEASE=$RELEASE" >> $GITHUB_OUTPUT
+          echo "FULL_RUN=$FULL_RUN" >> $GITHUB_OUTPUT
+        env:
+          RELEASE: ${{ github.event.inputs.release }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+
+
+  build-linux-packages:
+    needs:
+      - initialize
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: linux-gcc-cache-${{ matrix.os }}
+
+      - name: Configure shell
+        run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+          
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install python dependencies
+        run: pip install orderedmultidict
+
+      - name: Global Dependencies
+        run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
+
+      - name: Build - googletest
+        run: make googletest/install
+
+      - name: Build - capnproto
+        run: |
+          make capnproto/install
+          make capnproto/debian
+
+      - name: Build - json
+        run: |
+          make json/install
+          make json/debian
+
+      - name: Build - antlr4
+        run: |
+          make antlr4/install
+          make antlr4/debian
+
+      - name: Build - uhdm
+        run: |
+          make uhdm/install
+          make uhdm/debian
+
+      - name: Build - surelog
+        run: |
+          make surelog/install
+          make surelog/debian
+
+      - name: Build - simview
+        run: |
+          make simview/install
+          make simview/debian
+
+      - name: Build - yosys
+        run: |
+          make yosys/install
+          make yosys/debian
+
+      # - name: Build - verilator
+      #   run: make verilator-install
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifact-deb
+          path: ./*.deb
+
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: artifact-rpm
+      #     path: |
+      #       ./*.rpm
+      #       !./*-debuginfo-*.rpm
+
+  create-release:
+    needs: 
+      - initialize
+      - build-linux-packages
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04
+
+    runs-on: ${{ matrix.os }}
+
+    if: ${{ needs.initialize.outputs.RELEASE == 'true' }}
+
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact-deb
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            ./*.deb

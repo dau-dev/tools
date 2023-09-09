@@ -1,0 +1,13 @@
+
+googletest/
+capnproto/
+json/
+antlr4/
+uhdm/
+surelog/
+yosys/
+simview/
+verilator/
+
+*.deb
+*.rpm
