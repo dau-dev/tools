@@ -64,6 +64,19 @@ VERILATOR_VERSION := 5.014
 SIMVIEW_VERSION := 0.0.1
 
 #####################################################################################################################################################################################################################################################################################
+RELEASE_VERSION := 0.0.1
+
+.PHONY: download
+download:  ## Download all releases
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/antlr4_$(ANTLR4_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/capnproto_$(CAPNPROTO_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/json_$(JSON_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/uhdm_$(UHDM_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/surelog_$(SURELOG_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/yosys_$(YOSYS_VERSION)_amd64.deb
+
+#####################################################################################################################################################################################################################################################################################
 #                         _      _            _
 #                        | |    | |          | |
 #  __ _  ___   ___   __ _| | ___| |_ ___  ___| |_
