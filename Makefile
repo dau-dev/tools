@@ -11,8 +11,7 @@
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
 NPROC = $(shell nproc)
-endif
-ifeq ($(UNAME), Darwin)
+else ifeq ($(UNAME), Darwin)
 NPROC = $(shell sysctl -n hw.physicalcpu)
 endif
 
@@ -198,6 +197,11 @@ json/debian:  ## build debian package for json
 # https://www.antlr.org/
 #
 .PHONY: antlr4/build_shared antlr4/build_static antlr4 antlr4/install antlr4/debian
+ifeq ($(UNAME), Linux)
+ANTLR4_JAR_PATH := /usr
+else ifeq ($(UNAME), Darwin)
+ANTLR4_JAR_PATH := /opt/homebrew
+endif
 
 antlr4/antlr-$(ANTLR4_VERSION)-complete.jar:
 	mkdir -p antlr4
@@ -216,8 +220,8 @@ antlr4/build_static: antlr4/antlr-$(ANTLR4_VERSION)-complete.jar
 antlr4: antlr4/build_shared antlr4/build_static  ## build antlr4
 
 antlr4/install: antlr4/build_shared antlr4/build_static  ## build and install antlr4
-	cd antlr4 && sudo mkdir -p $(or $(INSTALL_PREFIX),/usr)/share/java
-	cd antlr4 && sudo cp antlr-$(ANTLR4_VERSION)-complete.jar $(or $(INSTALL_PREFIX),/usr)/share/java
+	cd antlr4 && sudo mkdir -p $(or $(INSTALL_PREFIX),$(ANTLR4_JAR_PATH))/share/java
+	cd antlr4 && sudo cp antlr-$(ANTLR4_VERSION)-complete.jar $(or $(INSTALL_PREFIX),$(ANTLR4_JAR_PATH))/share/java
 	cd antlr4 && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
 	cd antlr4 && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
@@ -332,8 +336,7 @@ surelog/debian:  ## build debian package for surelog
 
 ifeq ($(UNAME), Linux)
 YOSYS_ARGS := CONFIG=gcc
-endif
-ifeq ($(UNAME), Darwin)
+else ifeq ($(UNAME), Darwin)
 YOSYS_ARGS := CONFIG=clang
 endif
 
@@ -406,8 +409,7 @@ verilator/debian:  ## build debian package for verilator
 
 ifeq ($(UNAME), Linux)
 SIMVIEW_OUTPUT := $(or $(INSTALL_PREFIX),"/usr/local")/bin/
-endif
-ifeq ($(UNAME), Darwin)
+else ifeq ($(UNAME), Darwin)
 SIMVIEW_OUTPUT := $(or $(INSTALL_PREFIX),"/opt/homebrew")/bin/
 endif
 
