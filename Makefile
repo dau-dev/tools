@@ -200,7 +200,7 @@ json/debian:  ## build debian package for json
 ifeq ($(UNAME), Linux)
 ANTLR4_JAR_PATH := /usr
 else ifeq ($(UNAME), Darwin)
-ANTLR4_JAR_PATH := /opt/homebrew
+ANTLR4_JAR_PATH := /usr/local
 endif
 
 antlr4/antlr-$(ANTLR4_VERSION)-complete.jar:
@@ -246,7 +246,7 @@ antlr4/debian:  ## build debian package for antlr4
 #
 .PHONY: uhdm/build_shared uhdm/build_static uhdm uhdm/install uhdm/debian uhdm/rpm
 
-UHDM_CMAKE_ARGS := -DUHDM_USE_HOST_GTEST=ON -DUHDM_USE_HOST_CAPNP=ON
+UHDM_CMAKE_ARGS := -DUHDM_USE_HOST_GTEST=ON -DUHDM_USE_HOST_CAPNP=ON -DUHDM_BUILD_TESTS=OFF
 
 uhdm/.git:
 	git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
@@ -293,7 +293,7 @@ uhdm/rpm:  ## build rpm package for uhdm
 
 .PHONY: surelog/build_shared surelog/build_static surelog surelog/install surelog/debian
 # SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ALL=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
-SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ANTLR=ON -DSURELOG_USE_HOST_UHDM=ON -DSURELOG_USE_HOST_CAPNP=ON -DSURELOG_USE_HOST_GTEST=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
+SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ANTLR=ON -DSURELOG_USE_HOST_UHDM=ON -DSURELOG_USE_HOST_CAPNP=ON -DSURELOG_USE_HOST_GTEST=ON -DSURELOG_BUILD_TESTS=OFF -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
 
 surelog/.git:
 	git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
