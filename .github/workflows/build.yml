@@ -103,10 +103,10 @@ jobs:
           make json/install
           make json/debian
 
-      - name: Build - antlr4
+      - name: Build - antlr
         run: |
-          make antlr4/install
-          make antlr4/debian
+          make antlr/install
+          make antlr/debian
 
       - name: Build - uhdm
         run: |

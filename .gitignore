@@ -2,7 +2,7 @@
 googletest/
 capnproto/
 json/
-antlr4/
+antlr/
 uhdm/
 surelog/
 yosys/
