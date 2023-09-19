@@ -294,10 +294,12 @@ uhdm/rpm:  ## build rpm package for uhdm
 
 .PHONY: surelog/build_shared surelog/build_static surelog surelog/install surelog/debian
 # SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ALL=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
-SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ANTLR=ON -DSURELOG_USE_HOST_UHDM=ON -DSURELOG_USE_HOST_CAPNP=ON -DSURELOG_USE_HOST_GTEST=ON -DSURELOG_BUILD_TESTS=OFF -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
+SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ANTLR=ON -DSURELOG_USE_HOST_UHDM=ON -DSURELOG_USE_HOST_JSON=ON -DSURELOG_USE_HOST_CAPNP=ON -DSURELOG_USE_HOST_GTEST=ON -DSURELOG_BUILD_TESTS=OFF -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
 
 surelog/.git:
-	git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
+	# TODO once key changes are in
+	# git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
+	git clone --depth 1 --branch master https://github.com/chipsalliance/Surelog.git surelog
 
 surelog/build_shared: surelog/.git
 	cd surelog && cmake $(SURELOG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
