@@ -59,6 +59,7 @@ ANTLR_VERSION := 4.13.0
 UHDM_VERSION := 1.74
 SURELOG_VERSION := 1.74
 YOSYS_VERSION := 0.33
+SYNLIG_VERSION := 2023-09-19-a2c9ca8
 VERILATOR_VERSION := 5.014
 SIMVIEW_VERSION := 0.0.1
 
@@ -357,6 +358,40 @@ yosys/debian:  ## build debian package for yosys
 	$(MAKE) yosys/libs
 	$(MAKE) yosys/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build yosys/debian yosys_$(YOSYS_VERSION)_amd64.deb
+
+
+#                  _ _
+#                 | (_)
+#  ___ _   _ _ __ | |_  __ _
+# / __| | | | '_ \| | |/ _` |
+# \__ \ |_| | | | | | | (_| |
+# |___/\__, |_| |_|_|_|\__, |
+#       __/ |           __/ |
+#      |___/           |___/
+# 
+# https://github.com/chipsalliance/synlig
+#
+.PHONY: synlig/libs synlig synlig/install synlig/debian
+
+synlig/.git:
+	# TODO once merged
+	# git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
+	git clone --depth 1 --branch tkp/newyosys https://github.com/timkpaine/synlig.git
+
+synlig/libs: synlig/.git
+	cd synlig/frontends/systemverilog && make -j $(NPROC)
+
+synlig: synlig/libs  ## build synlig
+
+synlig/install: yosys/libs  ## build and install synlig
+	cd synlig/frontends/systemverilog && sudo make PREFIX=$(or $(INSTALL_PREFIX),"/usr/local") install
+
+synlig/debian:  ## build debian package for synlig
+	mkdir -p synlig/debian/DEBIAN
+	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
+	$(MAKE) synlig/libs
+	$(MAKE) synlig/install INSTALL_PREFIX=./debian
+	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
 
 
 

@@ -1,13 +1,14 @@
 
-googletest/
-capnproto/
-json/
-antlr/
-uhdm/
-surelog/
-yosys/
-simview/
-verilator/
+antlr
+capnproto
+googletest
+json
+simview
+surelog
+synlig
+uhdm
+verilator
+yosys
 
 *.deb
 *.rpm
