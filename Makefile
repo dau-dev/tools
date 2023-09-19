@@ -55,7 +55,7 @@ CMAKE_INSTALL_ARGS_STATIC := --install build_static $(CMAKE_INSTALL_ARGS)
 GOOGLETEST_VERSION := 1.14.0
 CAPNPROTO_VERSION := 1.0.0
 JSON_VERSION := 3.11.2
-ANTLR4_VERSION := 4.12.0
+ANTLR_VERSION := 4.13.0
 UHDM_VERSION := 1.74
 SURELOG_VERSION := 1.74
 YOSYS_VERSION := 0.33
@@ -67,7 +67,7 @@ RELEASE_VERSION := 0.0.1
 
 .PHONY: download
 download:  ## Download all releases
-	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/antlr4_$(ANTLR4_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/antlr_$(ANTLR_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/capnproto_$(CAPNPROTO_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/json_$(JSON_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/uhdm_$(UHDM_VERSION)_amd64.deb
@@ -196,42 +196,42 @@ json/debian:  ## build debian package for json
 #
 # https://www.antlr.org/
 #
-.PHONY: antlr4/build_shared antlr4/build_static antlr4 antlr4/install antlr4/debian
+.PHONY: antlr/build_shared antlr/build_static antlr antlr/install antlr/debian
 ifeq ($(UNAME), Linux)
-ANTLR4_JAR_PATH := /usr
+ANTLR_JAR_PATH := /usr
 else ifeq ($(UNAME), Darwin)
-ANTLR4_JAR_PATH := /usr/local
+ANTLR_JAR_PATH := /usr/local
 endif
 
-antlr4/antlr-$(ANTLR4_VERSION)-complete.jar:
-	mkdir -p antlr4
-	cd antlr4 && wget https://www.antlr.org/download/antlr4-cpp-runtime-4.12.0-source.zip
-	cd antlr4 && unzip antlr4-cpp-runtime-4.12.0-source.zip
-	wget https://www.antlr.org/download/antlr-$(ANTLR4_VERSION)-complete.jar -P ./antlr4
+antlr/antlr-$(ANTLR_VERSION)-complete.jar:
+	mkdir -p antlr
+	cd antlr && wget https://www.antlr.org/download/antlr4-cpp-runtime-$(ANTLR_VERSION)-source.zip
+	cd antlr && unzip antlr4-cpp-runtime-$(ANTLR_VERSION)-source.zip
+	wget https://www.antlr.org/download/antlr-$(ANTLR_VERSION)-complete.jar -P ./antlr
 
-antlr4/build_shared: antlr4/antlr-$(ANTLR4_VERSION)-complete.jar
-	cd antlr4 && cmake $(CMAKE_COMMON_ARGS_SHARED) .
-	cd antlr4 && cmake $(CMAKE_BUILD_ARGS_SHARED)
+antlr/build_shared: antlr/antlr-$(ANTLR_VERSION)-complete.jar
+	cd antlr && cmake $(CMAKE_COMMON_ARGS_SHARED) .
+	cd antlr && cmake $(CMAKE_BUILD_ARGS_SHARED)
 
-antlr4/build_static: antlr4/antlr-$(ANTLR4_VERSION)-complete.jar
-	cd antlr4 && cmake $(CMAKE_COMMON_ARGS_STATIC)
-	cd antlr4 && cmake $(CMAKE_BUILD_ARGS_STATIC)
+antlr/build_static: antlr/antlr-$(ANTLR_VERSION)-complete.jar
+	cd antlr && cmake $(CMAKE_COMMON_ARGS_STATIC)
+	cd antlr && cmake $(CMAKE_BUILD_ARGS_STATIC)
 
-antlr4: antlr4/build_shared antlr4/build_static  ## build antlr4
+antlr: antlr/build_shared antlr/build_static  ## build antlr
 
-antlr4/install: antlr4/build_shared antlr4/build_static  ## build and install antlr4
-	cd antlr4 && sudo mkdir -p $(or $(INSTALL_PREFIX),$(ANTLR4_JAR_PATH))/share/java
-	cd antlr4 && sudo cp antlr-$(ANTLR4_VERSION)-complete.jar $(or $(INSTALL_PREFIX),$(ANTLR4_JAR_PATH))/share/java
-	cd antlr4 && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd antlr4 && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+antlr/install: antlr/build_shared antlr/build_static  ## build and install antlr
+	cd antlr && sudo mkdir -p $(or $(INSTALL_PREFIX),$(ANTLR_JAR_PATH))/share/java
+	cd antlr && sudo cp antlr-$(ANTLR_VERSION)-complete.jar $(or $(INSTALL_PREFIX),$(ANTLR_JAR_PATH))/share/java
+	cd antlr && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd antlr && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
-antlr4/debian:  ## build debian package for antlr4
-	mkdir -p antlr4/debian/DEBIAN
-	printf "Package: antlr4\nVersion: $(ANTLR4_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: antlr4\n" > antlr4/debian/DEBIAN/control
-	$(MAKE) antlr4/build_static INSTALL_PREFIX=./debian
-	$(MAKE) antlr4/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) antlr4/install INSTALL_PREFIX=./debian
-	dpkg-deb -Z"gzip" --root-owner-group --build antlr4/debian antlr4_$(ANTLR4_VERSION)_amd64.deb
+antlr/debian:  ## build debian package for antlr
+	mkdir -p antlr/debian/DEBIAN
+	printf "Package: antlr\nVersion: $(ANTLR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: antlr\n" > antlr/debian/DEBIAN/control
+	$(MAKE) antlr/build_static INSTALL_PREFIX=./debian
+	$(MAKE) antlr/build_shared INSTALL_PREFIX=./debian
+	$(MAKE) antlr/install INSTALL_PREFIX=./debian
+	dpkg-deb -Z"gzip" --root-owner-group --build antlr/debian antlr_$(ANTLR_VERSION)_amd64.deb
 
 
 #####################################################################################################################################################################################################################################################################################
