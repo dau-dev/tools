@@ -250,6 +250,7 @@ antlr/debian:  ## build debian package for antlr
 UHDM_CMAKE_ARGS := -DUHDM_USE_HOST_GTEST=ON -DUHDM_USE_HOST_CAPNP=ON -DUHDM_BUILD_TESTS=OFF
 
 uhdm/.git:
+	# git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
 	git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
 
 uhdm/build_shared: uhdm/.git
