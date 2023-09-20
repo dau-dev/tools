@@ -345,7 +345,8 @@ YOSYS_ARGS := CONFIG=clang
 endif
 
 yosys/.git:
-	git clone --depth 1 --branch yosys-$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
+	# git clone --depth 1 --branch yosys-$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
+	git clone --depth 1 --branch master https://github.com/YosysHQ/yosys.git
 
 yosys/libs: yosys/.git
 	cd yosys && make $(YOSYS_ARGS) -j $(NPROC)
@@ -386,7 +387,7 @@ synlig/libs: synlig/.git
 
 synlig: synlig/libs  ## build synlig
 
-synlig/install: yosys/libs  ## build and install synlig
+synlig/install: synlig/libs  ## build and install synlig
 	cd synlig/frontends/systemverilog && sudo make PREFIX=$(or $(INSTALL_PREFIX),"/usr/local") install
 
 synlig/debian:  ## build debian package for synlig
