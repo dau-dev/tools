@@ -59,6 +59,7 @@ ANTLR_VERSION := 4.13.0
 UHDM_VERSION := 1.74
 SURELOG_VERSION := 1.74
 YOSYS_VERSION := 0.33
+SYNLIG_VERSION := 2023-09-19-a2c9ca8
 VERILATOR_VERSION := 5.014
 SIMVIEW_VERSION := 0.0.1
 
@@ -249,7 +250,8 @@ antlr/debian:  ## build debian package for antlr
 UHDM_CMAKE_ARGS := -DUHDM_USE_HOST_GTEST=ON -DUHDM_USE_HOST_CAPNP=ON -DUHDM_BUILD_TESTS=OFF
 
 uhdm/.git:
-	git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
+	# git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
+	git clone --depth 1 --branch master https://github.com/chipsalliance/UHDM.git uhdm
 
 uhdm/build_shared: uhdm/.git
 	cd uhdm && cmake $(UHDM_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
@@ -293,10 +295,12 @@ uhdm/rpm:  ## build rpm package for uhdm
 
 .PHONY: surelog/build_shared surelog/build_static surelog surelog/install surelog/debian
 # SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ALL=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
-SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ANTLR=ON -DSURELOG_USE_HOST_UHDM=ON -DSURELOG_USE_HOST_CAPNP=ON -DSURELOG_USE_HOST_GTEST=ON -DSURELOG_BUILD_TESTS=OFF -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
+SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ANTLR=ON -DSURELOG_USE_HOST_UHDM=ON -DSURELOG_USE_HOST_JSON=ON -DSURELOG_USE_HOST_CAPNP=ON -DSURELOG_USE_HOST_GTEST=ON -DSURELOG_BUILD_TESTS=OFF -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
 
 surelog/.git:
-	git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
+	# TODO once key changes are in
+	# git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
+	git clone --depth 1 --branch master https://github.com/chipsalliance/Surelog.git surelog
 
 surelog/build_shared: surelog/.git
 	cd surelog && cmake $(SURELOG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
@@ -357,6 +361,40 @@ yosys/debian:  ## build debian package for yosys
 	$(MAKE) yosys/libs
 	$(MAKE) yosys/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build yosys/debian yosys_$(YOSYS_VERSION)_amd64.deb
+
+
+#                  _ _
+#                 | (_)
+#  ___ _   _ _ __ | |_  __ _
+# / __| | | | '_ \| | |/ _` |
+# \__ \ |_| | | | | | | (_| |
+# |___/\__, |_| |_|_|_|\__, |
+#       __/ |           __/ |
+#      |___/           |___/
+# 
+# https://github.com/chipsalliance/synlig
+#
+.PHONY: synlig/libs synlig synlig/install synlig/debian
+
+synlig/.git:
+	# TODO once merged
+	# git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
+	git clone --depth 1 --branch tkp/newyosys https://github.com/timkpaine/synlig.git
+
+synlig/libs: synlig/.git
+	cd synlig/frontends/systemverilog && make -j $(NPROC)
+
+synlig: synlig/libs  ## build synlig
+
+synlig/install: yosys/libs  ## build and install synlig
+	cd synlig/frontends/systemverilog && sudo make PREFIX=$(or $(INSTALL_PREFIX),"/usr/local") install
+
+synlig/debian:  ## build debian package for synlig
+	mkdir -p synlig/debian/DEBIAN
+	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
+	$(MAKE) synlig/libs
+	$(MAKE) synlig/install INSTALL_PREFIX=./debian
+	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
 
 
 
