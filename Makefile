@@ -251,7 +251,7 @@ UHDM_CMAKE_ARGS := -DUHDM_USE_HOST_GTEST=ON -DUHDM_USE_HOST_CAPNP=ON -DUHDM_BUIL
 
 uhdm/.git:
 	# git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
-	git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
+	git clone --depth 1 --branch master https://github.com/chipsalliance/UHDM.git uhdm
 
 uhdm/build_shared: uhdm/.git
 	cd uhdm && cmake $(UHDM_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
