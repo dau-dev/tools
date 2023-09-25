@@ -56,8 +56,8 @@ GOOGLETEST_VERSION := 1.14.0
 CAPNPROTO_VERSION := 1.0.0
 JSON_VERSION := 3.11.2
 ANTLR_VERSION := 4.13.0
-UHDM_VERSION := 1.74
-SURELOG_VERSION := 1.74
+UHDM_VERSION := 1.75
+SURELOG_VERSION := 1.75
 YOSYS_VERSION := 0.33
 SYNLIG_VERSION := 2023-09-19-a2c9ca8
 VERILATOR_VERSION := 5.014
@@ -188,7 +188,7 @@ json/debian:  ## build debian package for json
 
 
 #####################################################################################################################################################################################################################################################################################
-#           _   _ _______ _      _____ 
+#           _   _ _______ _      _____
 #     /\   | \ | |__   __| |    |  __ \
 #    /  \  |  \| |  | |  | |    | |__) |
 #   / /\ \ | . ` |  | |  | |    |  _  /
@@ -236,7 +236,7 @@ antlr/debian:  ## build debian package for antlr
 
 
 #####################################################################################################################################################################################################################################################################################
-#  _    _ _    _ _____  __  __ 
+#  _    _ _    _ _____  __  __
 # | |  | | |  | |  __ \|  \/  |
 # | |  | | |__| | |  | | \  / |
 # | |  | |  __  | |  | | |\/| |
@@ -250,8 +250,7 @@ antlr/debian:  ## build debian package for antlr
 UHDM_CMAKE_ARGS := -DUHDM_USE_HOST_GTEST=ON -DUHDM_USE_HOST_CAPNP=ON -DUHDM_BUILD_TESTS=OFF
 
 uhdm/.git:
-	# git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
-	git clone --depth 1 --branch master https://github.com/chipsalliance/UHDM.git uhdm
+	git clone --depth 1 --branch v$(UHDM_VERSION) https://github.com/chipsalliance/UHDM.git uhdm
 
 uhdm/build_shared: uhdm/.git
 	cd uhdm && cmake $(UHDM_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
@@ -294,13 +293,10 @@ uhdm/rpm:  ## build rpm package for uhdm
 #
 
 .PHONY: surelog/build_shared surelog/build_static surelog surelog/install surelog/debian
-# SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ALL=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
-SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ANTLR=ON -DSURELOG_USE_HOST_UHDM=ON -DSURELOG_USE_HOST_JSON=ON -DSURELOG_USE_HOST_CAPNP=ON -DSURELOG_USE_HOST_GTEST=ON -DSURELOG_BUILD_TESTS=OFF -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
+SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ALL=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
 
 surelog/.git:
-	# TODO once key changes are in
-	# git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
-	git clone --depth 1 --branch master https://github.com/chipsalliance/Surelog.git surelog
+	git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
 
 surelog/build_shared: surelog/.git
 	cd surelog && cmake $(SURELOG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
@@ -372,7 +368,7 @@ yosys/debian:  ## build debian package for yosys
 # |___/\__, |_| |_|_|_|\__, |
 #       __/ |           __/ |
 #      |___/           |___/
-# 
+#
 # https://github.com/chipsalliance/synlig
 #
 .PHONY: synlig/libs synlig synlig/install synlig/debian
@@ -406,7 +402,7 @@ synlig/debian:  ## build debian package for synlig
 #   \ \/ / _ \ '__| | |/ _` | __/ _ \| '__|
 #    \  /  __/ |  | | | (_| | || (_) | |
 #     \/ \___|_|  |_|_|\__,_|\__\___/|_|
-#                                          
+#
 #
 # https://github.com/verilator/verilator
 #
