@@ -347,7 +347,8 @@ verible/.git:
 	git clone --depth 1 --branch v$(VERIBLE_VERSION) https://github.com/chipsalliance/verible.git
 
 verible/libs: verible/.git
-	cd verible && bazel build -c opt --config=create_static_linked_executables //...
+	cd verible && bazel build -c opt //...
+	# cd verible && bazel build -c opt --config=create_static_linked_executables //...
 
 verible: verible/libs  ## build verible
 
