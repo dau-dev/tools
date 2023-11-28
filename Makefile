@@ -72,7 +72,8 @@ JSON_VERSION := 3.11.2
 ANTLR_VERSION := 4.13.0
 UHDM_VERSION := 1.80
 SURELOG_VERSION := 1.80
-YOSYS_VERSION := 0.33
+VERIBLE_VERSION := 0.0-3430-g060bde0f
+YOSYS_VERSION := 0.35
 SYNLIG_VERSION := 2023-09-19-a2c9ca8
 VERILATOR_VERSION := 5.014
 SIMVIEW_VERSION := 0.0.1
@@ -331,6 +332,35 @@ surelog/debian:  ## build debian package for surelog
 	dpkg-deb -Z"gzip" --root-owner-group --build surelog/debian surelog_$(SURELOG_VERSION)_amd64.deb
 
 
+#####################################################################################################################################################################################################################################################################################
+# __      __       _ _     _
+# \ \    / /      (_) |   | |
+#  \ \  / /__ _ __ _| |__ | | ___
+#   \ \/ / _ \ '__| | '_ \| |/ _ \
+#    \  /  __/ |  | | |_) | |  __/
+#     \/ \___|_|  |_|_.__/|_|\___|
+#
+# https://github.com/chipsalliance/verible
+#
+.PHONY: verible/libs verible verible/install verible/debian
+verible/.git:
+	git clone --depth 1 --branch v$(VERIBLE_VERSION) https://github.com/chipsalliance/verible.git
+
+verible/libs: verible/.git
+	cd verible && bazel build -c opt --config=create_static_linked_executables //...
+
+verible: verible/libs  ## build verible
+
+verible/install: verible/libs  ## build and install verible
+	cd verible && bazel run -c opt :install -- -s $(or $(INSTALL_PREFIX),"/usr/local")
+
+verible/debian:  ## build debian package for verible
+	mkdir -p verible/debian/DEBIAN
+	printf "Package: verible\nVersion: $(VERIBLE_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verible\n" > verible/debian/DEBIAN/control
+	$(MAKE) verible/libs
+	$(MAKE) verible/install INSTALL_PREFIX=./debian
+	dpkg-deb -Z"gzip" --root-owner-group --build verible/debian verible_$(VERIBLE_VERSION)_amd64.deb
+
 
 #####################################################################################################################################################################################################################################################################################
 #  _   _  ___  ___ _   _ ___
@@ -351,8 +381,7 @@ YOSYS_ARGS := CONFIG=clang
 endif
 
 yosys/.git:
-	# git clone --depth 1 --branch yosys-$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
-	git clone --depth 1 --branch master https://github.com/YosysHQ/yosys.git
+	git clone --depth 1 --branch yosys-$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
 
 yosys/libs: yosys/.git
 	cd yosys && make $(YOSYS_ARGS) -j $(NPROC)
