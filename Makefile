@@ -359,7 +359,7 @@ verible/debian:  ## build debian package for verible
 	mkdir -p verible/debian/DEBIAN
 	printf "Package: verible\nVersion: $(VERIBLE_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verible\n" > verible/debian/DEBIAN/control
 	$(MAKE) verible/libs
-	$(MAKE) verible/install INSTALL_PREFIX=./debian
+	$(MAKE) verible/install INSTALL_PREFIX=`pwd`/debian
 	dpkg-deb -Z"gzip" --root-owner-group --build verible/debian verible_$(VERIBLE_VERSION)_amd64.deb
 
 
