@@ -77,15 +77,15 @@ jobs:
         with:
           key: linux-gcc-cache-${{ matrix.os }}
 
-      - name: Configure shell
+      - name: Configure shell for CCache
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Set up Rust
+      - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -98,6 +98,15 @@ jobs:
 
       - name: Global Dependencies
         run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
+
+      - name: Install Bazel
+        uses: bazelbuild/setup-bazelisk@v2
+
+      - name: Mount bazel cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/bazel"
+          key: bazel
 
       - name: Build - googletest
         run: make googletest/install
@@ -126,6 +135,11 @@ jobs:
         run: |
           make surelog/install
           make surelog/debian
+
+      - name: Build - verible
+        run: |
+          make verible/install
+          make verible/debian
 
       - name: Build - simview
         run: |
