@@ -353,6 +353,7 @@ verible/libs: verible/.git
 verible: verible/libs  ## build verible
 
 verible/install: verible/libs  ## build and install verible
+	mkdir -p $(or $(INSTALL_PREFIX),"/usr/local")/bin
 	cd verible && bazel run -c opt :install -- -s $(or $(INSTALL_PREFIX),"/usr/local")/bin
 
 verible/debian:  ## build debian package for verible
