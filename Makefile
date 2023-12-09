@@ -44,6 +44,20 @@ endif
 CMAKE_INSTALL_ARGS_SHARED := --install build_shared $(CMAKE_INSTALL_ARGS)
 CMAKE_INSTALL_ARGS_STATIC := --install build_static $(CMAKE_INSTALL_ARGS)
 
+# Common install vars
+ifeq ($(UNAME), Linux)
+ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/usr/local")
+BIN_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/bin/
+LIB_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/lib/
+SHARE_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/share/
+else ifeq ($(UNAME), Darwin)
+ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/opt/homebrew")
+BIN_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/bin/
+LIB_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/lib/
+SHARE_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/share/
+endif
+
+
 #####################################################################################################################################################################################################################################################################################
 # __      ________ _____   _____ _____ ____  _   _  _____
 # \ \    / /  ____|  __ \ / ____|_   _/ __ \| \ | |/ ____|
@@ -62,6 +76,7 @@ YOSYS_VERSION := 0.33
 SYNLIG_VERSION := 2023-09-19-a2c9ca8
 VERILATOR_VERSION := 5.014
 SIMVIEW_VERSION := 0.0.1
+SURFER_VERSION := 0.0.1
 
 #####################################################################################################################################################################################################################################################################################
 RELEASE_VERSION := 0.0.1
@@ -198,11 +213,6 @@ json/debian:  ## build debian package for json
 # https://www.antlr.org/
 #
 .PHONY: antlr/build_shared antlr/build_static antlr antlr/install antlr/debian
-ifeq ($(UNAME), Linux)
-ANTLR_JAR_PATH := /usr
-else ifeq ($(UNAME), Darwin)
-ANTLR_JAR_PATH := /usr/local
-endif
 
 antlr/antlr-$(ANTLR_VERSION)-complete.jar:
 	mkdir -p antlr
@@ -221,8 +231,8 @@ antlr/build_static: antlr/antlr-$(ANTLR_VERSION)-complete.jar
 antlr: antlr/build_shared antlr/build_static  ## build antlr
 
 antlr/install: antlr/build_shared antlr/build_static  ## build and install antlr
-	cd antlr && sudo mkdir -p $(or $(INSTALL_PREFIX),$(ANTLR_JAR_PATH))/share/java
-	cd antlr && sudo cp antlr-$(ANTLR_VERSION)-complete.jar $(or $(INSTALL_PREFIX),$(ANTLR_JAR_PATH))/share/java
+	cd antlr && sudo mkdir -p $(SHARE_DIR)/java
+	cd antlr && sudo cp antlr-$(ANTLR_VERSION)-complete.jar $(SHARE_DIR)/java
 	cd antlr && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
 	cd antlr && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
@@ -350,7 +360,7 @@ yosys/libs: yosys/.git
 yosys: yosys/libs  ## build yosys
 
 yosys/install: yosys/libs  ## build and install yosys
-	cd yosys && sudo make $(YOSYS_ARGS) PREFIX=$(or $(INSTALL_PREFIX),"/usr/local") install
+	cd yosys && sudo make $(YOSYS_ARGS) PREFIX=$(ROOT_PREFIX) install
 
 yosys/debian:  ## build debian package for yosys
 	mkdir -p yosys/debian/DEBIAN
@@ -384,7 +394,7 @@ synlig/libs: synlig/.git
 synlig: synlig/libs  ## build synlig
 
 synlig/install: synlig/libs  ## build and install synlig
-	cd synlig/frontends/systemverilog && sudo make PREFIX=$(or $(INSTALL_PREFIX),"/usr/local") install
+	cd synlig/frontends/systemverilog && sudo make PREFIX=$(ROOT_PREFIX) install
 
 synlig/debian:  ## build debian package for synlig
 	mkdir -p synlig/debian/DEBIAN
@@ -442,12 +452,6 @@ verilator/debian:  ## build debian package for verilator
 #
 .PHONY: simview/build_static simview simview/install simview/debian
 
-ifeq ($(UNAME), Linux)
-SIMVIEW_OUTPUT := $(or $(INSTALL_PREFIX),"/usr/local")/bin/
-else ifeq ($(UNAME), Darwin)
-SIMVIEW_OUTPUT := $(or $(INSTALL_PREFIX),"/opt/homebrew")/bin/
-endif
-
 simview/.git:
 	git clone --depth 1 --branch tkp/mac_and_sharedlibs https://github.com/timkpaine/simview.git
 
@@ -459,7 +463,7 @@ simview: simview/build_static  ## build simview
 
 simview/install: simview/build_static  ## build and install simview
 	cd simview && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
-	cd simview && mkdir -p $(SIMVIEW_OUTPUT) && sudo cp build_static/simview $(SIMVIEW_OUTPUT)
+	cd simview && mkdir -p $(BIN_DIR) && sudo cp build_static/simview $(BIN_DIR)
 
 simview/debian:  ## build debian package for simview
 	mkdir -p simview/debian/DEBIAN
@@ -467,6 +471,38 @@ simview/debian:  ## build debian package for simview
 	$(MAKE) simview/build_static INSTALL_PREFIX=./debian
 	$(MAKE) simview/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build simview/debian simview_$(SIMVIEW_VERSION)_amd64.deb
+
+
+#####################################################################################################################################################################################################################################################################################
+#    _____             __
+#   / ____|           / _|
+#  | (___  _   _ _ __| |_ ___ _ __
+#   \___ \| | | | '__|  _/ _ \ '__|
+#   ____) | |_| | |  | ||  __/ |
+#  |_____/ \__,_|_|  |_| \___|_|
+#
+# https://gitlab.com/surfer-project/surfer
+#
+.PHONY: surfer/build surfer surfer/install surfer/debian
+
+surfer/.git:
+	git clone --depth 1 --branch main https://gitlab.com/surfer-project/surfer.git
+	cd surfer && git submodule update --init --recursive
+
+surfer/build: surfer/.git
+	cd surfer && cargo build --release
+
+surfer: surfer/build  ## build surfer
+
+surfer/install: surfer/build  ## build and install surfer
+	cd surfer && mkdir -p $(BIN_DIR) && sudo cp target/release/surfer $(BIN_DIR)
+
+surfer/debian:  ## build debian package for surfer
+	mkdir -p surfer/debian/DEBIAN
+	printf "Package: surfer\nVersion: $(SURFER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: surfer\n" > surfer/debian/DEBIAN/control
+	$(MAKE) surfer/build INSTALL_PREFIX=./debian
+	$(MAKE) surfer/install INSTALL_PREFIX=./debian
+	dpkg-deb -Z"gzip" --root-owner-group --build surfer/debian surfer_$(SURFER_VERSION)_amd64.deb
 
 
 
@@ -487,6 +523,8 @@ clean:  ## Delete all built repos
 	sudo rm -rf antlr4
 	sudo rm -rf uhdm
 	sudo rm -rf surelog
+	sudo rm -rf synlig
+	sudo rm -rf verible
 
 
 .DEFAULT_GOAL := help
