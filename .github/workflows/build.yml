@@ -98,6 +98,8 @@ jobs:
 
       - name: Install Bazel
         uses: bazelbuild/setup-bazelisk@v2
+        env:
+          USE_BAZEL_VERSION: 6
 
       - name: Mount bazel cache
         uses: actions/cache@v3
@@ -109,6 +111,8 @@ jobs:
         run: |
           make verible/install
           make verible/debian
+        env:
+          USE_BAZEL_VERSION: 6
 
       - name: Configure shell for CCache
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
