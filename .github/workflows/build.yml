@@ -150,12 +150,12 @@ jobs:
       # - name: Build - verilator
       #   run: make verilator-install
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifact-deb
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@v3
+      # - uses: actions/upload-artifact@v4
       #   with:
       #     name: artifact-rpm
       #     path: |
