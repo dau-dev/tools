@@ -72,7 +72,7 @@ JSON_VERSION := 3.11.2
 ANTLR_VERSION := 4.13.0
 UHDM_VERSION := 1.80
 SURELOG_VERSION := 1.80
-VERIBLE_VERSION := 0.0-3430-g060bde0f
+VERIBLE_VERSION := 0.1.0
 YOSYS_VERSION := 0.35
 SYNLIG_VERSION := 2023-11-28-b8ed72d
 VERILATOR_VERSION := 5.018
@@ -344,7 +344,8 @@ surelog/debian:  ## build debian package for surelog
 #
 .PHONY: verible/libs verible verible/install verible/debian
 verible/.git:
-	git clone --depth 1 --branch v$(VERIBLE_VERSION) https://github.com/chipsalliance/verible.git
+	# git clone --depth 1 --branch v$(VERIBLE_VERSION) https://github.com/chipsalliance/verible.git
+	git clone --depth 1 --branch master https://github.com/chipsalliance/verible.git
 
 verible/libs: verible/.git
 	cd verible && bazel build -c opt //...
