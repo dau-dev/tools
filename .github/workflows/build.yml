@@ -93,11 +93,6 @@ jobs:
           components: clippy
           override: true
 
-      - name: Set up Rust Cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: surfer
-
       - name: Install python dependencies
         run: pip install orderedmultidict
 
