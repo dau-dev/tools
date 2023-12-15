@@ -82,35 +82,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: clippy
-          override: true
-
       - name: Install python dependencies
         run: pip install orderedmultidict
 
       - name: Global Dependencies
         run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
-
-      - name: Install Bazel
-        uses: bazelbuild/setup-bazelisk@v2
-
-      - name: Mount bazel cache
-        uses: actions/cache@v3
-        with:
-          path: "~/.cache/bazel"
-          key: bazel
-
-      - name: Build - verible
-        run: |
-          make verible/install
-          make verible/debian
-        env:
-          USE_BAZEL_VERSION: 6.4.0
 
       - name: Configure shell for CCache
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
@@ -148,11 +124,6 @@ jobs:
           make simview/install
           make simview/debian
 
-      - name: Build - surfer
-        run: |
-          make surfer/install
-          make surfer/debian
-
       - name: Build - yosys
         run: |
           make yosys/install
@@ -178,10 +149,126 @@ jobs:
       #       ./*.rpm
       #       !./*-debuginfo-*.rpm
 
+  build-linux-packages-verible:
+    needs:
+      - initialize
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy
+          override: true
+
+      - name: Global Dependencies
+        run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
+
+      - name: Install Bazel
+        uses: bazelbuild/setup-bazelisk@v2
+
+      - name: Mount bazel cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/bazel"
+          key: bazel
+
+      - name: Build - verible
+        run: |
+          make verible/install
+          make verible/debian
+        env:
+          USE_BAZEL_VERSION: 6.4.0
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-deb
+          path: ./*.deb
+
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: artifact-rpm
+      #     path: |
+      #       ./*.rpm
+      #       !./*-debuginfo-*.rpm
+
+  build-linux-packages-surfer:
+    needs:
+      - initialize
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy
+          override: true
+
+      - name: Global Dependencies
+        run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
+
+      - name: Install Bazel
+        uses: bazelbuild/setup-bazelisk@v2
+
+      - name: Mount bazel cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/bazel"
+          key: bazel
+
+      - name: Build - surfer
+        run: |
+          make surfer/install
+          make surfer/debian
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-deb
+          path: ./*.deb
+
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: artifact-rpm
+      #     path: |
+      #       ./*.rpm
+      #       !./*-debuginfo-*.rpm
+
   create-release:
     needs:
       - initialize
       - build-linux-packages
+      - build-linux-packages-verible
+      - build-linux-packages-surfer
 
     strategy:
       matrix:
