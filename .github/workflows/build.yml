@@ -197,7 +197,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: artifact-deb
+          name: artifact-deb-verible
           path: ./*.deb
 
       # - uses: actions/upload-artifact@v4
@@ -253,7 +253,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: artifact-deb
+          name: artifact-deb-surfer
           path: ./*.deb
 
       # - uses: actions/upload-artifact@v4
@@ -283,6 +283,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: artifact-deb
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: artifact-deb-verible
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: artifact-deb-surfer
 
       - name: Release
         uses: softprops/action-gh-release@v1
