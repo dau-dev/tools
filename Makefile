@@ -356,14 +356,14 @@ verible/libs: verible/.git
 verible: verible/libs  ## build verible
 
 verible/install: verible/libs  ## build and install verible
-	mkdir -p $(or $(INSTALL_PREFIX),"/usr/local")/bin
-	cd verible && bazel run -c opt :install -- -s $(or $(INSTALL_PREFIX),"/usr/local")/bin
+	mkdir -p $(BIN_DIR)
+	cd verible && bazel run -c opt :install -- $(BIN_DIR)
 
 verible/debian:  ## build debian package for verible
 	mkdir -p verible/debian/DEBIAN
 	printf "Package: verible\nVersion: $(VERIBLE_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verible\n" > verible/debian/DEBIAN/control
 	$(MAKE) verible/libs
-	$(MAKE) verible/install INSTALL_PREFIX=`pwd`/debian
+	$(MAKE) verible/install INSTALL_PREFIX=$(shell pwd)/verible/debian
 	dpkg-deb -Z"gzip" --root-owner-group --build verible/debian verible_$(VERIBLE_VERSION)_amd64.deb
 
 
@@ -445,7 +445,7 @@ synlig/debian:  ## build debian package for synlig
 	mkdir -p synlig/debian/DEBIAN
 	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
 	$(MAKE) synlig/build
-	$(MAKE) synlig/install INSTALL_PREFIX=./debian
+	cp -r synlig/install/* synlig/debian/
 	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
 
 
