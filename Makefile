@@ -402,6 +402,7 @@ yosys/debian:  ## build debian package for yosys
 	dpkg-deb -Z"gzip" --root-owner-group --build yosys/debian yosys_$(YOSYS_VERSION)_amd64.deb
 
 
+#####################################################################################################################################################################################################################################################################################
 #                  _ _
 #                 | (_)
 #  ___ _   _ _ __ | |_  __ _
@@ -413,18 +414,20 @@ yosys/debian:  ## build debian package for yosys
 #
 # https://github.com/chipsalliance/synlig
 #
-.PHONY: synlig/libs synlig synlig/install synlig/debian
+.PHONY: synlig/build synlig synlig/install synlig/debian
+SYNLIG_CMAKE_ARGS := -DSYNLIG_USE_HOST_ALL=ON -DSYNLIG_WITH_TCMALLOC=OFF -DSYNLIG_WITH_ZLIB=ON
 
 synlig/.git:
 	git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
 
-synlig/libs: synlig/.git
-	cd synlig/frontends/systemverilog && make -j $(NPROC)
+synlig/build: synlig/.git
+	cd synlig && cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
+	cd synlig && cmake $(CMAKE_BUILD_ARGS_SHARED)
 
-synlig: synlig/libs  ## build synlig
+synlig: synlig/build  ## build synlig
 
-synlig/install: synlig/libs  ## build and install synlig
-	cd synlig/frontends/systemverilog && sudo make PREFIX=$(ROOT_PREFIX) install
+synlig/install: synlig/build  ## build and install synlig
+	cd synlig && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
 
 synlig/debian:  ## build debian package for synlig
 	mkdir -p synlig/debian/DEBIAN
@@ -555,6 +558,8 @@ clean:  ## Delete all built repos
 	sudo rm -rf surelog
 	sudo rm -rf synlig
 	sudo rm -rf verible
+	sudo rm -rf yosys
+	sudo rm -rf surfer
 
 
 .DEFAULT_GOAL := help
