@@ -48,11 +48,13 @@ CMAKE_INSTALL_ARGS_STATIC := --install build_static $(CMAKE_INSTALL_ARGS)
 ifeq ($(UNAME), Linux)
 ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/usr/local")
 BIN_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/bin/
+INC_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/include/
 LIB_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/lib/
 SHARE_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/share/
 else ifeq ($(UNAME), Darwin)
 ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/opt/homebrew")
 BIN_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/bin/
+INC_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/include/
 LIB_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/lib/
 SHARE_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/share/
 endif
@@ -70,11 +72,12 @@ GOOGLETEST_VERSION := 1.14.0
 CAPNPROTO_VERSION := 1.0.0
 JSON_VERSION := 3.11.2
 ANTLR_VERSION := 4.13.0
-UHDM_VERSION := 1.75
-SURELOG_VERSION := 1.75
-YOSYS_VERSION := 0.33
-SYNLIG_VERSION := 2023-09-19-a2c9ca8
-VERILATOR_VERSION := 5.014
+UHDM_VERSION := 1.80
+SURELOG_VERSION := 1.80
+VERIBLE_VERSION := 0.1.0
+YOSYS_VERSION := 0.35
+SYNLIG_VERSION := 2023-12-13-b3e690f
+VERILATOR_VERSION := 5.018
 SIMVIEW_VERSION := 0.0.1
 SURFER_VERSION := 0.0.1
 
@@ -331,6 +334,38 @@ surelog/debian:  ## build debian package for surelog
 	dpkg-deb -Z"gzip" --root-owner-group --build surelog/debian surelog_$(SURELOG_VERSION)_amd64.deb
 
 
+#####################################################################################################################################################################################################################################################################################
+# __      __       _ _     _
+# \ \    / /      (_) |   | |
+#  \ \  / /__ _ __ _| |__ | | ___
+#   \ \/ / _ \ '__| | '_ \| |/ _ \
+#    \  /  __/ |  | | |_) | |  __/
+#     \/ \___|_|  |_|_.__/|_|\___|
+#
+# https://github.com/chipsalliance/verible
+#
+.PHONY: verible/libs verible verible/install verible/debian
+verible/.git:
+	# git clone --depth 1 --branch v$(VERIBLE_VERSION) https://github.com/chipsalliance/verible.git
+	git clone --depth 1 --branch master https://github.com/chipsalliance/verible.git
+
+verible/libs: verible/.git
+	cd verible && bazel build -c opt //...
+	# cd verible && bazel build -c opt --config=create_static_linked_executables //...
+
+verible: verible/libs  ## build verible
+
+verible/install: verible/libs  ## build and install verible
+	mkdir -p $(or $(INSTALL_PREFIX),"/usr/local")/bin
+	cd verible && bazel run -c opt :install -- -s $(or $(INSTALL_PREFIX),"/usr/local")/bin
+
+verible/debian:  ## build debian package for verible
+	mkdir -p verible/debian/DEBIAN
+	printf "Package: verible\nVersion: $(VERIBLE_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verible\n" > verible/debian/DEBIAN/control
+	$(MAKE) verible/libs
+	$(MAKE) verible/install INSTALL_PREFIX=`pwd`/debian
+	dpkg-deb -Z"gzip" --root-owner-group --build verible/debian verible_$(VERIBLE_VERSION)_amd64.deb
+
 
 #####################################################################################################################################################################################################################################################################################
 #  _   _  ___  ___ _   _ ___
@@ -351,8 +386,7 @@ YOSYS_ARGS := CONFIG=clang
 endif
 
 yosys/.git:
-	# git clone --depth 1 --branch yosys-$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
-	git clone --depth 1 --branch master https://github.com/YosysHQ/yosys.git
+	git clone --depth 1 --branch yosys-$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
 
 yosys/libs: yosys/.git
 	cd yosys && make $(YOSYS_ARGS) -j $(NPROC)
@@ -370,6 +404,7 @@ yosys/debian:  ## build debian package for yosys
 	dpkg-deb -Z"gzip" --root-owner-group --build yosys/debian yosys_$(YOSYS_VERSION)_amd64.deb
 
 
+#####################################################################################################################################################################################################################################################################################
 #                  _ _
 #                 | (_)
 #  ___ _   _ _ __ | |_  __ _
@@ -381,25 +416,35 @@ yosys/debian:  ## build debian package for yosys
 #
 # https://github.com/chipsalliance/synlig
 #
-.PHONY: synlig/libs synlig synlig/install synlig/debian
+.PHONY: synlig/build synlig synlig/install synlig/debian
+SYNLIG_CMAKE_ARGS := \
+	-DSYNLIG_USE_HOST_SURELOG=ON \
+	-DSYNLIG_USE_HOST_CAPNP=ON \
+	-DSYNLIG_USE_HOST_GTEST=ON \
+	-DSYNLIG_USE_HOST_YOSYS=OFF \
+	-DYOSYS_CONFIG=yosys-config \
+	-DYOSYS_PATH=$(shell yosys-config --datdir)/include \
+	-DSYNLIG_WITH_TCMALLOC=OFF \
+	-DSYNLIG_WITH_ZLIB=ON
 
 synlig/.git:
-	# TODO once merged
 	# git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
-	git clone --depth 1 --branch tkp/newyosys https://github.com/timkpaine/synlig.git
+	git clone --depth 1 --branch tkp/cmakeext https://github.com/dau-dev/synlig.git
 
-synlig/libs: synlig/.git
-	cd synlig/frontends/systemverilog && make -j $(NPROC)
+synlig/build: synlig/.git
+	echo "cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) ."
+	cd synlig && cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
+	cd synlig && cmake $(CMAKE_BUILD_ARGS_SHARED)
 
-synlig: synlig/libs  ## build synlig
+synlig: synlig/build  ## build synlig
 
-synlig/install: synlig/libs  ## build and install synlig
-	cd synlig/frontends/systemverilog && sudo make PREFIX=$(ROOT_PREFIX) install
+synlig/install: synlig/build  ## build and install synlig
+	cd synlig && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
 
 synlig/debian:  ## build debian package for synlig
 	mkdir -p synlig/debian/DEBIAN
 	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
-	$(MAKE) synlig/libs
+	$(MAKE) synlig/build
 	$(MAKE) synlig/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
 
@@ -525,6 +570,8 @@ clean:  ## Delete all built repos
 	sudo rm -rf surelog
 	sudo rm -rf synlig
 	sudo rm -rf verible
+	sudo rm -rf yosys
+	sudo rm -rf surfer
 
 
 .DEFAULT_GOAL := help
