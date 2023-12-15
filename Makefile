@@ -445,7 +445,7 @@ synlig/debian:  ## build debian package for synlig
 	mkdir -p synlig/debian/DEBIAN
 	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
 	$(MAKE) synlig/build
-	cp -r synlig/install/* synlig/debian/
+	cp -r synlig/out/current/* synlig/debian/
 	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
 
 
