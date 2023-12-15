@@ -74,7 +74,7 @@ UHDM_VERSION := 1.80
 SURELOG_VERSION := 1.80
 VERIBLE_VERSION := 0.1.0
 YOSYS_VERSION := 0.35
-SYNLIG_VERSION := 2023-11-28-b8ed72d
+SYNLIG_VERSION := 2023-12-13-b3e690f
 VERILATOR_VERSION := 5.018
 SIMVIEW_VERSION := 0.0.1
 SURFER_VERSION := 0.0.1
@@ -416,9 +416,7 @@ yosys/debian:  ## build debian package for yosys
 .PHONY: synlig/libs synlig synlig/install synlig/debian
 
 synlig/.git:
-	# TODO once merged
-	# git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
-	git clone --depth 1 --branch tkp/newyosys https://github.com/timkpaine/synlig.git
+	git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
 
 synlig/libs: synlig/.git
 	cd synlig/frontends/systemverilog && make -j $(NPROC)
