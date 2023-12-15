@@ -48,11 +48,13 @@ CMAKE_INSTALL_ARGS_STATIC := --install build_static $(CMAKE_INSTALL_ARGS)
 ifeq ($(UNAME), Linux)
 ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/usr/local")
 BIN_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/bin/
+INC_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/include/
 LIB_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/lib/
 SHARE_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/share/
 else ifeq ($(UNAME), Darwin)
 ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/opt/homebrew")
 BIN_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/bin/
+INC_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/include/
 LIB_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/lib/
 SHARE_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/share/
 endif
@@ -415,12 +417,22 @@ yosys/debian:  ## build debian package for yosys
 # https://github.com/chipsalliance/synlig
 #
 .PHONY: synlig/build synlig synlig/install synlig/debian
-SYNLIG_CMAKE_ARGS := -DSYNLIG_USE_HOST_ALL=ON -DSYNLIG_WITH_TCMALLOC=OFF -DSYNLIG_WITH_ZLIB=ON
+SYNLIG_CMAKE_ARGS := \
+	-DSYNLIG_USE_HOST_SURELOG=ON \
+	-DSYNLIG_USE_HOST_CAPNP=ON \
+	-DSYNLIG_USE_HOST_GTEST=ON \
+	-DSYNLIG_USE_HOST_YOSYS=OFF \
+	-DYOSYS_CONFIG=yosys-config \
+	-DYOSYS_PATH=$(shell yosys-config --datdir)/include \
+	-DSYNLIG_WITH_TCMALLOC=OFF \
+	-DSYNLIG_WITH_ZLIB=ON
 
 synlig/.git:
-	git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
+	# git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
+	git clone --depth 1 --branch tkp/cmakeext https://github.com/dau-dev/synlig.git
 
 synlig/build: synlig/.git
+	echo "cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) ."
 	cd synlig && cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
 	cd synlig && cmake $(CMAKE_BUILD_ARGS_SHARED)
 
@@ -432,7 +444,7 @@ synlig/install: synlig/build  ## build and install synlig
 synlig/debian:  ## build debian package for synlig
 	mkdir -p synlig/debian/DEBIAN
 	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
-	$(MAKE) synlig/libs
+	$(MAKE) synlig/build
 	$(MAKE) synlig/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
 
