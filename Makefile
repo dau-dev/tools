@@ -50,13 +50,15 @@ ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/usr/local")
 BIN_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/bin/
 INC_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/include/
 LIB_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/lib/
-SHARE_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/share/
+SHARE_DIR := $(or $(INSTALL_PREFIX),"/usr/local")/share
+JAVA_INSTALL_DIR := /usr/local/share
 else ifeq ($(UNAME), Darwin)
 ROOT_PREFIX := $(or $(INSTALL_PREFIX),"/opt/homebrew")
 BIN_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/bin/
 INC_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/include/
 LIB_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/lib/
-SHARE_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/share/
+SHARE_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/share
+JAVA_INSTALL_DIR := /opt/homebrew/share
 endif
 
 
@@ -68,16 +70,16 @@ endif
 #    \  /  | |____| | \ \ ____) |_| || |__| | |\  |____) |
 #     \/   |______|_|  \_\_____/|_____\____/|_| \_|_____/
 #
-GOOGLETEST_VERSION := 1.14.0
-CAPNPROTO_VERSION := 1.0.0
-JSON_VERSION := 3.11.2
-ANTLR_VERSION := 4.13.0
-UHDM_VERSION := 1.80
-SURELOG_VERSION := 1.80
+GOOGLETEST_VERSION := 1.15.2
+CAPNPROTO_VERSION := 1.0.2
+JSON_VERSION := 3.11.3
+ANTLR_VERSION := 4.13.2
+UHDM_VERSION := 1.84
+SURELOG_VERSION := 1.84
 VERIBLE_VERSION := 0.1.0
-YOSYS_VERSION := 0.35
-SYNLIG_VERSION := 2023-12-13-b3e690f
-VERILATOR_VERSION := 5.018
+YOSYS_VERSION := 0.47
+SYNLIG_VERSION := 2024-11-29-10efd31
+VERILATOR_VERSION := 5.030
 SIMVIEW_VERSION := 0.0.1
 SURFER_VERSION := 0.0.1
 
@@ -306,7 +308,7 @@ uhdm/rpm:  ## build rpm package for uhdm
 #
 
 .PHONY: surelog/build_shared surelog/build_static surelog surelog/install surelog/debian
-SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ALL=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON
+SURELOG_CMAKE_ARGS := -DSURELOG_USE_HOST_ALL=ON -DSURELOG_WITH_TCMALLOC=OFF -DSURELOG_WITH_ZLIB=ON -DANTLR_JAR_LOCATION=${JAVA_INSTALL_DIR}/java/antlr-$(ANTLR_VERSION)-complete.jar
 
 surelog/.git:
 	git clone --depth 1 --branch v$(SURELOG_VERSION) https://github.com/chipsalliance/Surelog.git surelog
@@ -386,7 +388,8 @@ YOSYS_ARGS := CONFIG=clang
 endif
 
 yosys/.git:
-	git clone --depth 1 --branch yosys-$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
+	git clone --depth 1 --branch $(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
+	cd yosys && git submodule update --init --recursive
 
 yosys/libs: yosys/.git
 	cd yosys && make $(YOSYS_ARGS) -j $(NPROC)
@@ -428,8 +431,7 @@ SYNLIG_CMAKE_ARGS := \
 	-DSYNLIG_WITH_ZLIB=ON
 
 synlig/.git:
-	# git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
-	git clone --depth 1 --branch tkp/cmakeext https://github.com/dau-dev/synlig.git
+	git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
 
 synlig/build: synlig/.git
 	echo "cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) ."
