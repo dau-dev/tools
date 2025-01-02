@@ -79,7 +79,7 @@ SURELOG_VERSION := 1.84
 VERIBLE_VERSION := 0.1.0
 YOSYS_VERSION := 0.47
 SYNLIG_VERSION := 2024-11-29-10efd31
-VERILATOR_VERSION := 5.030
+VERILATOR_VERSION := 5.032
 SIMVIEW_VERSION := 0.0.1
 SURFER_VERSION := 0.0.1
 
@@ -359,7 +359,7 @@ verible: verible/libs  ## build verible
 
 verible/install: verible/libs  ## build and install verible
 	mkdir -p $(BIN_DIR)
-	cd verible && bazel run -c opt :install -- $(BIN_DIR)
+	cd verible && .github/bin/simple-install.sh $(BIN_DIR)
 
 verible/debian:  ## build debian package for verible
 	mkdir -p verible/debian/DEBIAN
