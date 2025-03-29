@@ -86,13 +86,18 @@ jobs:
         run: pip install orderedmultidict
 
       - name: Global Dependencies
-        run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
+        run: sudo apt install bison flex libfl-dev libftdi1-2 libftdi1-dev libhidapi-hidraw0 libhidapi-dev libreadline-dev libudev-dev tcl-dev zlib1g-dev
 
       - name: Configure shell for CCache
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
       - name: Build - googletest
         run: make googletest/install
+
+      - name: Build - openFPGALoader
+        run: |
+          make openfpgaloader/install
+          make openfpgaloader/debian
 
       - name: Build - capnproto
         run: |
