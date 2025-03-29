@@ -3,6 +3,7 @@ antlr
 capnproto
 googletest
 json
+openFPGALoader
 simview
 surelog
 surfer

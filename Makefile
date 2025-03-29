@@ -80,6 +80,7 @@ VERIBLE_VERSION := 0.1.0
 YOSYS_VERSION := 0.51
 SYNLIG_VERSION := 2024-11-29-10efd31
 VERILATOR_VERSION := 5.034
+OPENFPGALOADER_VERSION := 0.13.1
 SIMVIEW_VERSION := 0.0.1
 SURFER_VERSION := 0.0.1
 
@@ -406,6 +407,44 @@ yosys/debian:  ## build debian package for yosys
 	$(MAKE) yosys/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build yosys/debian yosys_$(YOSYS_VERSION)_amd64.deb
 
+#####################################################################################################################################################################################################################################################################################
+#                         ______ _____   _____          _                     _
+#                        |  ____|  __ \ / ____|   /\   | |                   | |
+#   ___  _ __   ___ _ __ | |__  | |__) | |  __   /  \  | |     ___   __ _  __| | ___ _ __
+#  / _ \| '_ \ / _ \ '_ \|  __| |  ___/| | |_ | / /\ \ | |    / _ \ / _` |/ _` |/ _ \ '__|
+# | (_) | |_) |  __/ | | | |    | |    | |__| |/ ____ \| |___| (_) | (_| | (_| |  __/ |
+#  \___/| .__/ \___|_| |_|_|    |_|     \_____/_/    \_\______\___/ \__,_|\__,_|\___|_|
+#       | |
+#       |_|
+#
+# https://github.com/trabucayre/openFPGALoader
+#
+.PHONY: openfpgaloader/libs openfpgaloader openfpgaloader/install openfpgaloader/debian
+
+openfpgaloader/.git:
+	git clone --depth 1 --branch v$(OPENFPGALOADER_VERSION) https://github.com/trabucayre/openFPGALoader.git openfpgaloader
+
+openfpgaloader/build_shared: openfpgaloader/.git
+	cd openfpgaloader && cmake $(CMAKE_COMMON_ARGS_SHARED) .
+	cd openfpgaloader && cmake $(CMAKE_BUILD_ARGS_SHARED)
+
+openfpgaloader/build_static: openfpgaloader/.git
+	cd openfpgaloader && cmake $(CMAKE_COMMON_ARGS_STATIC)
+	cd openfpgaloader && cmake $(CMAKE_BUILD_ARGS_STATIC)
+
+openfpgaloader: openfpgaloader/build_shared openfpgaloader/build_static  ## build openfpgaloader
+
+openfpgaloader/install: openfpgaloader/build_shared openfpgaloader/build_static  ## build and install openfpgaloader
+	cd openfpgaloader && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd openfpgaloader && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+
+openfpgaloader/debian:  ## build debian package for openfpgaloader
+	mkdir -p openfpgaloader/debian/DEBIAN
+	printf "Package: openfpgaloader\nVersion: $(OPENFPGALOADER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: openfpgaloader\n" > openfpgaloader/debian/DEBIAN/control
+	$(MAKE) openfpgaloader/build_static INSTALL_PREFIX=./debian
+	$(MAKE) openfpgaloader/build_shared INSTALL_PREFIX=./debian
+	$(MAKE) openfpgaloader/install INSTALL_PREFIX=./debian
+	dpkg-deb -Z"gzip" --root-owner-group --build openfpgaloader/debian openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
 
 #####################################################################################################################################################################################################################################################################################
 #                  _ _
@@ -573,6 +612,7 @@ clean:  ## Delete all built repos
 	sudo rm -rf synlig
 	sudo rm -rf verible
 	sudo rm -rf yosys
+	sudo rm -rf openfpgaloader
 	sudo rm -rf surfer
 
 
