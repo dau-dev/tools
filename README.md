@@ -2,7 +2,7 @@
 
 Software Tools
 
-[![Build Status](https://github.com/dau-dev/tools/workflows/Release/badge.svg?branch=main)](https://github.com/dau-dev/tools/actions?query=workflow%3A%22Release%22)
+[![Release](https://github.com/dau-dev/tools/actions/workflows/build.yml/badge.svg?branch=main&event=push)](https://github.com/dau-dev/tools/actions/workflows/build.yml)
 
 | Package        | Source                                                                    | Version            | Arch  | Platform |
 | :------------- | :------------------------------------------------------------------------ | :----------------- | :---- | :------- |
