@@ -77,7 +77,7 @@ ANTLR_VERSION := 4.13.2
 UHDM_VERSION := 1.84
 SURELOG_VERSION := 1.84
 VERIBLE_VERSION := 0.1.0
-YOSYS_VERSION := 0.47
+YOSYS_VERSION := 0.51
 SYNLIG_VERSION := 2024-11-29-10efd31
 VERILATOR_VERSION := 5.032
 SIMVIEW_VERSION := 0.0.1
@@ -388,7 +388,7 @@ YOSYS_ARGS := CONFIG=clang
 endif
 
 yosys/.git:
-	git clone --depth 1 --branch $(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
+	git clone --depth 1 --branch v$(YOSYS_VERSION) https://github.com/YosysHQ/yosys.git
 	cd yosys && git submodule update --init --recursive
 
 yosys/libs: yosys/.git
