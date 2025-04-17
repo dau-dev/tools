@@ -139,8 +139,10 @@ jobs:
           make synlig/install
           make synlig/debian
 
-      # - name: Build - verilator
-      #   run: make verilator-install
+      - name: Build - verilator
+        run: |
+          make verilator/install
+          make verilator/debian
 
       - uses: actions/upload-artifact@v4
         with:
@@ -302,5 +304,4 @@ jobs:
         with:
           fail_on_unmatched_files: true
           prerelease: true
-          files: |
-            ./*.deb
+          files: './*.deb'
