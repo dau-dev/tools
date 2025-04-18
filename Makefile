@@ -525,6 +525,7 @@ verilator/debian:  ## build debian package for verilator
 	printf "Package: verilator\nVersion: $(VERILATOR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verilator\n" > verilator/debian/DEBIAN/control
 	$(MAKE) verilator/build_static INSTALL_PREFIX=./debian
 	$(MAKE) verilator/install INSTALL_PREFIX=./debian
+	cd verilator/debian && sudo mkdir -p share/verilator && sudo mv include share/verilator && sudo mv examples share/verilator && sudo mv *.cmake share/verilator/ && sudo cp -r bin share/verilator
 	dpkg-deb -Z"gzip" --root-owner-group --build verilator/debian verilator_$(VERILATOR_VERSION)_amd64.deb
 
 
