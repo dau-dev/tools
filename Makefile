@@ -510,6 +510,10 @@ verilator/.git:
 verilator/build_static: verilator/.git
 	cd verilator && cmake $(CMAKE_COMMON_ARGS_STATIC) .
 	cd verilator && cmake $(CMAKE_BUILD_ARGS_STATIC)
+	cd verilator && echo "AR = ar" >> build_static/include/verilated.mk
+	cd verilator && echo "CXX = c++" >> build_static/include/verilated.mk
+	cd verilator && echo "LINK = c++" >> build_static/include/verilated.mk
+	cd verilator && echo "PYTHON3 = python" >> build_static/include/verilated.mk
 
 verilator: verilator/build_static  ## build verilator
 
