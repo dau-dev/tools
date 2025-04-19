@@ -458,6 +458,8 @@ openfpgaloader/install: openfpgaloader/build_shared openfpgaloader/build_static 
 	cd openfpgaloader && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 openfpgaloader/debian:  ## build debian package for openfpgaloader
+	$(SUDO) rm openfpgaloader/build_static/install_manifest.txt
+	$(SUDO) rm openfpgaloader/build_shared/install_manifest.txt
 	$(MAKE) openfpgaloader/build_static INSTALL_PREFIX=./debian
 	$(MAKE) openfpgaloader/build_shared INSTALL_PREFIX=./debian
 	$(MAKE) openfpgaloader/install INSTALL_PREFIX=./debian SUDO=
