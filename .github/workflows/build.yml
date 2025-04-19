@@ -95,9 +95,7 @@ jobs:
         run: make googletest/install
 
       - name: Build - openFPGALoader
-        run: |
-          make openfpgaloader/install
-          make openfpgaloader/debian
+        run: make openfpgaloader/debian
 
       - name: Build - capnproto
         run: |
@@ -135,14 +133,10 @@ jobs:
           make yosys/debian
 
       - name: Build - synlig
-        run: |
-          make synlig/install
-          make synlig/debian
+        run: make synlig/debian
 
       - name: Build - verilator
-        run: |
-          make verilator/install
-          make verilator/debian
+        run: make verilator/debian
 
       - uses: actions/upload-artifact@v4
         with:
@@ -196,9 +190,7 @@ jobs:
           key: bazel
 
       - name: Build - verible
-        run: |
-          make verible/install
-          make verible/debian
+        run: make verible/debian
         env:
           USE_BAZEL_VERSION: 6.4.0
 
@@ -254,9 +246,7 @@ jobs:
           key: bazel
 
       - name: Build - surfer
-        run: |
-          make surfer/install
-          make surfer/debian
+        run: make surfer/debian
 
       - uses: actions/upload-artifact@v4
         with:
