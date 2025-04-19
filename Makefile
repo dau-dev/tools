@@ -96,6 +96,11 @@ download:  ## Download all releases
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/surelog_$(SURELOG_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/yosys_$(YOSYS_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/synlig_$(SYNLIG_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/verilator_$(VERILATOR_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/surfer_$(SURFER_VERSION)_amd64.deb
 
 #####################################################################################################################################################################################################################################################################################
 #                         _      _            _
@@ -525,7 +530,7 @@ verilator/debian:  ## build debian package for verilator
 	printf "Package: verilator\nVersion: $(VERILATOR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verilator\n" > verilator/debian/DEBIAN/control
 	$(MAKE) verilator/build_static INSTALL_PREFIX=./debian
 	$(MAKE) verilator/install INSTALL_PREFIX=./debian
-	cd verilator/debian && sudo mkdir -p share/verilator && sudo mv include share/verilator && sudo mv examples share/verilator && sudo mv *.cmake share/verilator/ && sudo cp -r bin share/verilator
+	cd verilator/debian && rm -rf share/verilator && mkdir -p share/verilator && mv include share/verilator && mv examples share/verilator && mv *.cmake share/verilator/ && sed -i 's|$$verilator_pkgdatadir_relpath = ".."|$$verilator_pkgdatadir_relpath = "../share/verilator"|g' bin/verilator && cp -r bin share/verilator
 	dpkg-deb -Z"gzip" --root-owner-group --build verilator/debian verilator_$(VERILATOR_VERSION)_amd64.deb
 
 
