@@ -92,57 +92,57 @@ jobs:
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
       - name: Build - googletest
-        run: make googletest/install
+        run: sudo make googletest/install
 
       - name: Build - openFPGALoader
         run: |
-          make openfpgaloader/install
-          make openfpgaloader/debian
+          sudo make openfpgaloader/install
+          sudo make openfpgaloader/debian
 
       - name: Build - capnproto
         run: |
-          make capnproto/install
-          make capnproto/debian
+          sudo make capnproto/install
+          sudo make capnproto/debian
 
       - name: Build - json
         run: |
-          make json/install
-          make json/debian
+          sudo make json/install
+          sudo make json/debian
 
       - name: Build - antlr
         run: |
-          make antlr/install
-          make antlr/debian
+          sudo make antlr/install
+          sudo make antlr/debian
 
       - name: Build - uhdm
         run: |
-          make uhdm/install
-          make uhdm/debian
+          sudo make uhdm/install
+          sudo make uhdm/debian
 
       - name: Build - surelog
         run: |
-          make surelog/install
-          make surelog/debian
+          sudo make surelog/install
+          sudo make surelog/debian
 
       - name: Build - simview
         run: |
-          make simview/install
-          make simview/debian
+          sudo make simview/install
+          sudo make simview/debian
 
       - name: Build - yosys
         run: |
-          make yosys/install
-          make yosys/debian
+          sudo make yosys/install
+          sudo make yosys/debian
 
       - name: Build - synlig
         run: |
-          make synlig/install
-          make synlig/debian
+          sudo make synlig/install
+          sudo make synlig/debian
 
       - name: Build - verilator
         run: |
-          make verilator/install
-          make verilator/debian
+          sudo make verilator/install
+          sudo make verilator/debian
 
       - uses: actions/upload-artifact@v4
         with:
@@ -197,8 +197,8 @@ jobs:
 
       - name: Build - verible
         run: |
-          make verible/install
-          make verible/debian
+          sudo make verible/install
+          sudo make verible/debian
         env:
           USE_BAZEL_VERSION: 6.4.0
 
@@ -255,8 +255,8 @@ jobs:
 
       - name: Build - surfer
         run: |
-          make surfer/install
-          make surfer/debian
+          sudo make surfer/install
+          sudo make surfer/debian
 
       - uses: actions/upload-artifact@v4
         with:
