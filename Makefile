@@ -27,8 +27,8 @@ CCACHE := $(shell which ccache 2> /dev/null)
 ifdef CCACHE
     CMAKE_COMMON_ARGS := $(CMAKE_COMMON_ARGS) -DCMAKE_CXX_COMPILER_LAUNCHER=$(shell which ccache)
 endif
-CMAKE_COMMON_ARGS_SHARED := -B build_shared $(CMAKE_COMMON_ARGS) -DBUILD_SHARED_LIBS=ON
-CMAKE_COMMON_ARGS_STATIC := -B build_static $(CMAKE_COMMON_ARGS) -DBUILD_SHARED_LIBS=OFF
+CMAKE_COMMON_ARGS_SHARED := -B build_shared $(CMAKE_COMMON_ARGS) -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF
+CMAKE_COMMON_ARGS_STATIC := -B build_static $(CMAKE_COMMON_ARGS) -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF
 
 # Common CMake build args
 CMAKE_BUILD_ARGS := -- -j $(NPROC)
@@ -60,6 +60,8 @@ LIB_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/lib/
 SHARE_DIR := $(or $(INSTALL_PREFIX),"/opt/homebrew")/share
 JAVA_INSTALL_DIR := /opt/homebrew/share
 endif
+
+SUDO:=sudo
 
 
 #####################################################################################################################################################################################################################################################################################
@@ -96,6 +98,11 @@ download:  ## Download all releases
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/surelog_$(SURELOG_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/yosys_$(YOSYS_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/synlig_$(SYNLIG_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/verilator_$(VERILATOR_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/surfer_$(SURFER_VERSION)_amd64.deb
 
 #####################################################################################################################################################################################################################################################################################
 #                         _      _            _
@@ -126,8 +133,8 @@ googletest: googletest/build_shared googletest/build_static  ## build googletest
 
 .PHONY: googletest/install
 googletest/install: googletest/build_shared googletest/build_static  ## build and install googletest
-	cd googletest && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd googletest && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd googletest && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd googletest && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 
 
@@ -159,15 +166,17 @@ capnproto/build_static: capnproto/.git
 capnproto: capnproto/build_shared capnproto/build_static  ## build capnproto
 
 capnproto/install: capnproto/build_shared capnproto/build_static  ## build and install capnproto
-	cd capnproto && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd capnproto && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd capnproto && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd capnproto && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 capnproto/debian:  ## build debian package for capnproto
-	mkdir -p capnproto/debian/DEBIAN
-	printf "Package: capnproto\nVersion: $(CAPNPROTO_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: capnproto\n" > capnproto/debian/DEBIAN/control
+	$(SUDO) rm -rf capnproto/build_static/install_manifest.txt
+	$(SUDO) rm -rf capnproto/build_shared/install_manifest.txt
 	$(MAKE) capnproto/build_static INSTALL_PREFIX=./debian
 	$(MAKE) capnproto/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) capnproto/install INSTALL_PREFIX=./debian
+	$(MAKE) capnproto/install INSTALL_PREFIX=./debian SUDO=
+	mkdir -p capnproto/debian/DEBIAN
+	printf "Package: capnproto\nVersion: $(CAPNPROTO_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: capnproto\n" > capnproto/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build capnproto/debian capnproto_$(CAPNPROTO_VERSION)_amd64.deb
 
 #####################################################################################################################################################################################################################################################################################
@@ -182,29 +191,33 @@ capnproto/debian:  ## build debian package for capnproto
 #
 .PHONY: json/build_shared json/build_static json json/install json/debian
 
+JSON_CMAKE_ARGS:=-DJSON_BuildTests=OFF
+
 json/.git:
 	git clone --depth 1 --branch v$(JSON_VERSION) https://github.com/nlohmann/json.git
 
 json/build_shared: json/.git
-	cd json && cmake $(CMAKE_COMMON_ARGS_SHARED) .
+	cd json && cmake $(CMAKE_COMMON_ARGS_SHARED) $(JSON_CMAKE_ARGS)
 	cd json && cmake $(CMAKE_BUILD_ARGS_SHARED)
 
 json/build_static: json/.git
-	cd json && cmake $(CMAKE_COMMON_ARGS_STATIC)
+	cd json && cmake $(CMAKE_COMMON_ARGS_STATIC) $(JSON_CMAKE_ARGS)
 	cd json && cmake $(CMAKE_BUILD_ARGS_STATIC)
 
 json: json/build_shared json/build_static  ## build json
 
 json/install: json/build_shared json/build_static  ## build and install json
-	cd json && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd json && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd json && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd json && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 json/debian:  ## build debian package for json
-	mkdir -p json/debian/DEBIAN
-	printf "Package: json\nVersion: $(JSON_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: json\n" > json/debian/DEBIAN/control
+	$(SUDO) rm -rf json/build_static/install_manifest.txt
+	$(SUDO) rm -rf json/build_shared/install_manifest.txt
 	$(MAKE) json/build_static INSTALL_PREFIX=./debian
 	$(MAKE) json/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) json/install INSTALL_PREFIX=./debian
+	$(MAKE) json/install INSTALL_PREFIX=./debian SUDO=
+	mkdir -p json/debian/DEBIAN
+	printf "Package: json\nVersion: $(JSON_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: json\n" > json/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build json/debian json_$(JSON_VERSION)_amd64.deb
 
 
@@ -237,17 +250,19 @@ antlr/build_static: antlr/antlr-$(ANTLR_VERSION)-complete.jar
 antlr: antlr/build_shared antlr/build_static  ## build antlr
 
 antlr/install: antlr/build_shared antlr/build_static  ## build and install antlr
-	cd antlr && sudo mkdir -p $(SHARE_DIR)/java
-	cd antlr && sudo cp antlr-$(ANTLR_VERSION)-complete.jar $(SHARE_DIR)/java
-	cd antlr && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd antlr && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd antlr && $(SUDO) mkdir -p $(SHARE_DIR)/java
+	cd antlr && $(SUDO) cp antlr-$(ANTLR_VERSION)-complete.jar $(SHARE_DIR)/java
+	cd antlr && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd antlr && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 antlr/debian:  ## build debian package for antlr
-	mkdir -p antlr/debian/DEBIAN
-	printf "Package: antlr\nVersion: $(ANTLR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: antlr\n" > antlr/debian/DEBIAN/control
+	$(SUDO) rm -rf antlr/build_static/install_manifest.txt
+	$(SUDO) rm -rf antlr/build_shared/install_manifest.txt
 	$(MAKE) antlr/build_static INSTALL_PREFIX=./debian
 	$(MAKE) antlr/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) antlr/install INSTALL_PREFIX=./debian
+	$(MAKE) antlr/install INSTALL_PREFIX=./debian SUDO=
+	mkdir -p antlr/debian/DEBIAN
+	printf "Package: antlr\nVersion: $(ANTLR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: antlr\n" > antlr/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build antlr/debian antlr_$(ANTLR_VERSION)_amd64.deb
 
 
@@ -279,15 +294,17 @@ uhdm/build_static: uhdm/.git
 uhdm: uhdm/build_shared uhdm/build_static  ## build uhdm
 
 uhdm/install: uhdm/build_shared uhdm/build_static  ## build and install uhdm
-	cd uhdm && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd uhdm && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd uhdm && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd uhdm && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 uhdm/debian:  ## build debian package for uhdm
-	mkdir -p uhdm/debian/DEBIAN
-	printf "Package: uhdm\nVersion: $(UHDM_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: UHDM\n" > uhdm/debian/DEBIAN/control
+	$(SUDO) rm -rf uhdm/build_static/install_manifest.txt
+	$(SUDO) rm -rf uhdm/build_shared/install_manifest.txt
 	$(MAKE) uhdm/build_static INSTALL_PREFIX=./debian
 	$(MAKE) uhdm/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) uhdm/install INSTALL_PREFIX=./debian
+	$(MAKE) uhdm/install INSTALL_PREFIX=./debian SUDO=
+	mkdir -p uhdm/debian/DEBIAN
+	printf "Package: uhdm\nVersion: $(UHDM_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: UHDM\n" > uhdm/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build uhdm/debian uhdm_$(UHDM_VERSION)_amd64.deb
 
 uhdm/rpm:  ## build rpm package for uhdm
@@ -325,15 +342,17 @@ surelog/build_static: surelog/.git
 surelog: surelog/build_shared surelog/build_static  ## build surelog
 
 surelog/install: surelog/build_shared surelog/build_static  ## build and install surelog
-	cd surelog && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd surelog && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd surelog && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd surelog && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 surelog/debian:  ## build debian package for surelog
-	mkdir -p surelog/debian/DEBIAN
-	printf "Package: surelog\nVersion: $(SURELOG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: surelog\n" > surelog/debian/DEBIAN/control
+	$(SUDO) rm -rf surelog/build_static/install_manifest.txt
+	$(SUDO) rm -rf surelog/build_shared/install_manifest.txt
 	$(MAKE) surelog/build_static INSTALL_PREFIX=./debian
 	$(MAKE) surelog/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) surelog/install INSTALL_PREFIX=./debian
+	$(MAKE) surelog/install INSTALL_PREFIX=./debian SUDO=
+	mkdir -p surelog/debian/DEBIAN
+	printf "Package: surelog\nVersion: $(SURELOG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: surelog\n" > surelog/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build surelog/debian surelog_$(SURELOG_VERSION)_amd64.deb
 
 
@@ -360,13 +379,13 @@ verible: verible/libs  ## build verible
 
 verible/install: verible/libs  ## build and install verible
 	mkdir -p $(BIN_DIR)
-	cd verible && .github/bin/simple-install.sh $(BIN_DIR)
+	cd verible && $(SUDO) .github/bin/simple-install.sh $(BIN_DIR)
 
 verible/debian:  ## build debian package for verible
+	$(MAKE) verible/libs
+	$(MAKE) verible/install INSTALL_PREFIX=$(shell pwd)/verible/debian SUDO=
 	mkdir -p verible/debian/DEBIAN
 	printf "Package: verible\nVersion: $(VERIBLE_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verible\n" > verible/debian/DEBIAN/control
-	$(MAKE) verible/libs
-	$(MAKE) verible/install INSTALL_PREFIX=$(shell pwd)/verible/debian
 	dpkg-deb -Z"gzip" --root-owner-group --build verible/debian verible_$(VERIBLE_VERSION)_amd64.deb
 
 
@@ -398,13 +417,13 @@ yosys/libs: yosys/.git
 yosys: yosys/libs  ## build yosys
 
 yosys/install: yosys/libs  ## build and install yosys
-	cd yosys && sudo make $(YOSYS_ARGS) PREFIX=$(ROOT_PREFIX) install
+	cd yosys && $(SUDO) make $(YOSYS_ARGS) PREFIX=$(ROOT_PREFIX) install
 
 yosys/debian:  ## build debian package for yosys
+	$(MAKE) yosys/libs
+	$(MAKE) yosys/install INSTALL_PREFIX=./debian SUDO=
 	mkdir -p yosys/debian/DEBIAN
 	printf "Package: yosys\nVersion: $(YOSYS_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: yosys\n" > yosys/debian/DEBIAN/control
-	$(MAKE) yosys/libs
-	$(MAKE) yosys/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build yosys/debian yosys_$(YOSYS_VERSION)_amd64.deb
 
 #####################################################################################################################################################################################################################################################################################
@@ -435,15 +454,17 @@ openfpgaloader/build_static: openfpgaloader/.git
 openfpgaloader: openfpgaloader/build_shared openfpgaloader/build_static  ## build openfpgaloader
 
 openfpgaloader/install: openfpgaloader/build_shared openfpgaloader/build_static  ## build and install openfpgaloader
-	cd openfpgaloader && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
-	cd openfpgaloader && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd openfpgaloader && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd openfpgaloader && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 openfpgaloader/debian:  ## build debian package for openfpgaloader
-	mkdir -p openfpgaloader/debian/DEBIAN
-	printf "Package: openfpgaloader\nVersion: $(OPENFPGALOADER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: openfpgaloader\n" > openfpgaloader/debian/DEBIAN/control
+	$(SUDO) rm -rf openfpgaloader/build_static/install_manifest.txt
+	$(SUDO) rm -rf openfpgaloader/build_shared/install_manifest.txt
 	$(MAKE) openfpgaloader/build_static INSTALL_PREFIX=./debian
 	$(MAKE) openfpgaloader/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) openfpgaloader/install INSTALL_PREFIX=./debian
+	$(MAKE) openfpgaloader/install INSTALL_PREFIX=./debian SUDO=
+	mkdir -p openfpgaloader/debian/DEBIAN
+	printf "Package: openfpgaloader\nVersion: $(OPENFPGALOADER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: openfpgaloader\n" > openfpgaloader/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build openfpgaloader/debian openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
 
 #####################################################################################################################################################################################################################################################################################
@@ -480,12 +501,12 @@ synlig/build: synlig/.git
 synlig: synlig/build  ## build synlig
 
 synlig/install: synlig/build  ## build and install synlig
-	cd synlig && sudo cmake $(CMAKE_INSTALL_ARGS_SHARED)
+	cd synlig && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
 
 synlig/debian:  ## build debian package for synlig
+	$(MAKE) synlig/build
 	mkdir -p synlig/debian/DEBIAN
 	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
-	$(MAKE) synlig/build
 	cp -r synlig/out/current/* synlig/debian/
 	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
 
@@ -518,14 +539,15 @@ verilator/build_static: verilator/.git
 verilator: verilator/build_static  ## build verilator
 
 verilator/install: verilator/build_static  ## build and install verilator
-	cd verilator && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd verilator && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
 
 verilator/debian:  ## build debian package for verilator
+	$(SUDO) rm -rf verilator/debian
+	$(MAKE) verilator/build_static INSTALL_PREFIX=./debian
+	$(MAKE) verilator/install INSTALL_PREFIX=./debian SUDO=
 	mkdir -p verilator/debian/DEBIAN
 	printf "Package: verilator\nVersion: $(VERILATOR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verilator\n" > verilator/debian/DEBIAN/control
-	$(MAKE) verilator/build_static INSTALL_PREFIX=./debian
-	$(MAKE) verilator/install INSTALL_PREFIX=./debian
-	cd verilator/debian && sudo mkdir -p share/verilator && sudo mv include share/verilator && sudo mv examples share/verilator && sudo mv *.cmake share/verilator/ && sudo cp -r bin share/verilator
+	cd verilator/debian && rm -rf share/verilator && mkdir -p share/verilator && mv include share/verilator && mv examples share/verilator && mv *.cmake share/verilator/ && sed -i 's|$$verilator_pkgdatadir_relpath = ".."|$$verilator_pkgdatadir_relpath = "../share/verilator"|g' bin/verilator && cp -r bin share/verilator
 	dpkg-deb -Z"gzip" --root-owner-group --build verilator/debian verilator_$(VERILATOR_VERSION)_amd64.deb
 
 
@@ -553,14 +575,15 @@ simview/build_static: simview/.git
 simview: simview/build_static  ## build simview
 
 simview/install: simview/build_static  ## build and install simview
-	cd simview && sudo cmake $(CMAKE_INSTALL_ARGS_STATIC)
-	cd simview && mkdir -p $(BIN_DIR) && sudo cp build_static/simview $(BIN_DIR)
+	cd simview && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_STATIC)
+	cd simview && $(SUDO) mkdir -p $(BIN_DIR) && $(SUDO) cp build_static/simview $(BIN_DIR)
 
 simview/debian:  ## build debian package for simview
+	$(SUDO) rm -rf simview/build_static/install_manifest.txt
+	$(MAKE) simview/build_static INSTALL_PREFIX=./debian
+	$(MAKE) simview/install INSTALL_PREFIX=./debian SUDO=
 	mkdir -p simview/debian/DEBIAN
 	printf "Package: simview\nVersion: $(SIMVIEW_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: simview\n" > simview/debian/DEBIAN/control
-	$(MAKE) simview/build_static INSTALL_PREFIX=./debian
-	$(MAKE) simview/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build simview/debian simview_$(SIMVIEW_VERSION)_amd64.deb
 
 
@@ -586,13 +609,13 @@ surfer/build: surfer/.git
 surfer: surfer/build  ## build surfer
 
 surfer/install: surfer/build  ## build and install surfer
-	cd surfer && mkdir -p $(BIN_DIR) && sudo cp target/release/surfer $(BIN_DIR)
+	cd surfer && $(SUDO) mkdir -p $(BIN_DIR) && $(SUDO) cp target/release/surfer $(BIN_DIR)
 
 surfer/debian:  ## build debian package for surfer
+	$(MAKE) surfer/build INSTALL_PREFIX=./debian
+	$(MAKE) surfer/install INSTALL_PREFIX=./debian SUDO=
 	mkdir -p surfer/debian/DEBIAN
 	printf "Package: surfer\nVersion: $(SURFER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: surfer\n" > surfer/debian/DEBIAN/control
-	$(MAKE) surfer/build INSTALL_PREFIX=./debian
-	$(MAKE) surfer/install INSTALL_PREFIX=./debian
 	dpkg-deb -Z"gzip" --root-owner-group --build surfer/debian surfer_$(SURFER_VERSION)_amd64.deb
 
 
@@ -608,17 +631,17 @@ surfer/debian:  ## build debian package for surfer
 #
 .PHONY: clean
 clean:  ## Delete all built repos
-	sudo rm -rf googletest
-	sudo rm -rf capnproto
-	sudo rm -rf json
-	sudo rm -rf antlr4
-	sudo rm -rf uhdm
-	sudo rm -rf surelog
-	sudo rm -rf synlig
-	sudo rm -rf verible
-	sudo rm -rf yosys
-	sudo rm -rf openfpgaloader
-	sudo rm -rf surfer
+	rm -rf googletest
+	rm -rf capnproto
+	rm -rf json
+	rm -rf antlr4
+	rm -rf uhdm
+	rm -rf surelog
+	rm -rf synlig
+	rm -rf verible
+	rm -rf yosys
+	rm -rf openfpgaloader
+	rm -rf surfer
 
 
 .DEFAULT_GOAL := help
