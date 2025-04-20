@@ -383,7 +383,7 @@ verible/install: verible/libs  ## build and install verible
 
 verible/debian:  ## build debian package for verible
 	$(MAKE) verible/libs
-	$(MAKE) verible/install INSTALL_PREFIX=$(shell pwd)/verible/debian SUDO=
+	$(MAKE) verible/install INSTALL_PREFIX=$(shell pwd)/verible/debian/usr/local SUDO=
 	mkdir -p verible/debian/DEBIAN
 	printf "Package: verible\nVersion: $(VERIBLE_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verible\n" > verible/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build verible/debian verible_$(VERIBLE_VERSION)_amd64.deb
@@ -547,7 +547,7 @@ verilator/debian:  ## build debian package for verilator
 	$(MAKE) verilator/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p verilator/debian/DEBIAN
 	printf "Package: verilator\nVersion: $(VERILATOR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verilator\n" > verilator/debian/DEBIAN/control
-	cd verilator/debian && rm -rf share/verilator && mkdir -p share/verilator && mv include share/verilator && mv examples share/verilator && mv *.cmake share/verilator/ && sed -i 's|$$verilator_pkgdatadir_relpath = ".."|$$verilator_pkgdatadir_relpath = "../share/verilator"|g' bin/verilator && cp -r bin share/verilator
+	cd verilator/debian/usr/local && rm -rf share/verilator && mkdir -p share/verilator && mv include share/verilator && mv examples share/verilator && mv *.cmake share/verilator/ && sed -i 's|$$verilator_pkgdatadir_relpath = ".."|$$verilator_pkgdatadir_relpath = "../share/verilator"|g' bin/verilator && cp -r bin share/verilator
 	dpkg-deb -Z"gzip" --root-owner-group --build verilator/debian verilator_$(VERILATOR_VERSION)_amd64.deb
 
 
