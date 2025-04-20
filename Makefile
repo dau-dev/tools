@@ -172,9 +172,9 @@ capnproto/install: capnproto/build_shared capnproto/build_static  ## build and i
 capnproto/debian:  ## build debian package for capnproto
 	$(SUDO) rm -rf capnproto/build_static/install_manifest.txt
 	$(SUDO) rm -rf capnproto/build_shared/install_manifest.txt
-	$(MAKE) capnproto/build_static INSTALL_PREFIX=./debian
-	$(MAKE) capnproto/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) capnproto/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) capnproto/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) capnproto/build_shared INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) capnproto/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p capnproto/debian/DEBIAN
 	printf "Package: capnproto\nVersion: $(CAPNPROTO_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: capnproto\n" > capnproto/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build capnproto/debian capnproto_$(CAPNPROTO_VERSION)_amd64.deb
@@ -213,9 +213,9 @@ json/install: json/build_shared json/build_static  ## build and install json
 json/debian:  ## build debian package for json
 	$(SUDO) rm -rf json/build_static/install_manifest.txt
 	$(SUDO) rm -rf json/build_shared/install_manifest.txt
-	$(MAKE) json/build_static INSTALL_PREFIX=./debian
-	$(MAKE) json/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) json/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) json/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) json/build_shared INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) json/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p json/debian/DEBIAN
 	printf "Package: json\nVersion: $(JSON_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: json\n" > json/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build json/debian json_$(JSON_VERSION)_amd64.deb
@@ -258,9 +258,9 @@ antlr/install: antlr/build_shared antlr/build_static  ## build and install antlr
 antlr/debian:  ## build debian package for antlr
 	$(SUDO) rm -rf antlr/build_static/install_manifest.txt
 	$(SUDO) rm -rf antlr/build_shared/install_manifest.txt
-	$(MAKE) antlr/build_static INSTALL_PREFIX=./debian
-	$(MAKE) antlr/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) antlr/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) antlr/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) antlr/build_shared INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) antlr/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p antlr/debian/DEBIAN
 	printf "Package: antlr\nVersion: $(ANTLR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: antlr\n" > antlr/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build antlr/debian antlr_$(ANTLR_VERSION)_amd64.deb
@@ -300,9 +300,9 @@ uhdm/install: uhdm/build_shared uhdm/build_static  ## build and install uhdm
 uhdm/debian:  ## build debian package for uhdm
 	$(SUDO) rm -rf uhdm/build_static/install_manifest.txt
 	$(SUDO) rm -rf uhdm/build_shared/install_manifest.txt
-	$(MAKE) uhdm/build_static INSTALL_PREFIX=./debian
-	$(MAKE) uhdm/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) uhdm/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) uhdm/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) uhdm/build_shared INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) uhdm/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p uhdm/debian/DEBIAN
 	printf "Package: uhdm\nVersion: $(UHDM_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: UHDM\n" > uhdm/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build uhdm/debian uhdm_$(UHDM_VERSION)_amd64.deb
@@ -348,9 +348,9 @@ surelog/install: surelog/build_shared surelog/build_static  ## build and install
 surelog/debian:  ## build debian package for surelog
 	$(SUDO) rm -rf surelog/build_static/install_manifest.txt
 	$(SUDO) rm -rf surelog/build_shared/install_manifest.txt
-	$(MAKE) surelog/build_static INSTALL_PREFIX=./debian
-	$(MAKE) surelog/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) surelog/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) surelog/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) surelog/build_shared INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) surelog/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p surelog/debian/DEBIAN
 	printf "Package: surelog\nVersion: $(SURELOG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: surelog\n" > surelog/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build surelog/debian surelog_$(SURELOG_VERSION)_amd64.deb
@@ -421,7 +421,7 @@ yosys/install: yosys/libs  ## build and install yosys
 
 yosys/debian:  ## build debian package for yosys
 	$(MAKE) yosys/libs
-	$(MAKE) yosys/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) yosys/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p yosys/debian/DEBIAN
 	printf "Package: yosys\nVersion: $(YOSYS_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: yosys\n" > yosys/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build yosys/debian yosys_$(YOSYS_VERSION)_amd64.deb
@@ -460,9 +460,9 @@ openfpgaloader/install: openfpgaloader/build_shared openfpgaloader/build_static 
 openfpgaloader/debian:  ## build debian package for openfpgaloader
 	$(SUDO) rm -rf openfpgaloader/build_static/install_manifest.txt
 	$(SUDO) rm -rf openfpgaloader/build_shared/install_manifest.txt
-	$(MAKE) openfpgaloader/build_static INSTALL_PREFIX=./debian
-	$(MAKE) openfpgaloader/build_shared INSTALL_PREFIX=./debian
-	$(MAKE) openfpgaloader/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) openfpgaloader/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) openfpgaloader/build_shared INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) openfpgaloader/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p openfpgaloader/debian/DEBIAN
 	printf "Package: openfpgaloader\nVersion: $(OPENFPGALOADER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: openfpgaloader\n" > openfpgaloader/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build openfpgaloader/debian openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
@@ -543,8 +543,8 @@ verilator/install: verilator/build_static  ## build and install verilator
 
 verilator/debian:  ## build debian package for verilator
 	$(SUDO) rm -rf verilator/debian
-	$(MAKE) verilator/build_static INSTALL_PREFIX=./debian
-	$(MAKE) verilator/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) verilator/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) verilator/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p verilator/debian/DEBIAN
 	printf "Package: verilator\nVersion: $(VERILATOR_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: verilator\n" > verilator/debian/DEBIAN/control
 	cd verilator/debian && rm -rf share/verilator && mkdir -p share/verilator && mv include share/verilator && mv examples share/verilator && mv *.cmake share/verilator/ && sed -i 's|$$verilator_pkgdatadir_relpath = ".."|$$verilator_pkgdatadir_relpath = "../share/verilator"|g' bin/verilator && cp -r bin share/verilator
@@ -580,8 +580,8 @@ simview/install: simview/build_static  ## build and install simview
 
 simview/debian:  ## build debian package for simview
 	$(SUDO) rm -rf simview/build_static/install_manifest.txt
-	$(MAKE) simview/build_static INSTALL_PREFIX=./debian
-	$(MAKE) simview/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) simview/build_static INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) simview/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p simview/debian/DEBIAN
 	printf "Package: simview\nVersion: $(SIMVIEW_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: simview\n" > simview/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build simview/debian simview_$(SIMVIEW_VERSION)_amd64.deb
@@ -612,8 +612,8 @@ surfer/install: surfer/build  ## build and install surfer
 	cd surfer && $(SUDO) mkdir -p $(BIN_DIR) && $(SUDO) cp target/release/surfer $(BIN_DIR)
 
 surfer/debian:  ## build debian package for surfer
-	$(MAKE) surfer/build INSTALL_PREFIX=./debian
-	$(MAKE) surfer/install INSTALL_PREFIX=./debian SUDO=
+	$(MAKE) surfer/build INSTALL_PREFIX=./debian/usr/local
+	$(MAKE) surfer/install INSTALL_PREFIX=./debian/usr/local SUDO=
 	mkdir -p surfer/debian/DEBIAN
 	printf "Package: surfer\nVersion: $(SURFER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: surfer\n" > surfer/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build surfer/debian surfer_$(SURFER_VERSION)_amd64.deb
