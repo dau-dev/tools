@@ -277,15 +277,15 @@ jobs:
     if: ${{ needs.initialize.outputs.RELEASE == 'true' }}
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact-deb
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact-deb-verible
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact-deb-surfer
 
