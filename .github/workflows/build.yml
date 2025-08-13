@@ -122,10 +122,10 @@ jobs:
           make surelog/install
           make surelog/debian
 
-      - name: Build - simview
-        run: |
-          make simview/install
-          make simview/debian
+      # - name: Build - simview
+      #   run: |
+      #     make simview/install
+      #     make simview/debian
 
       - name: Build - yosys
         run: |

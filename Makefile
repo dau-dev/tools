@@ -99,7 +99,7 @@ download:  ## Download all releases
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/json_$(JSON_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/uhdm_$(UHDM_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/surelog_$(SURELOG_VERSION)_amd64.deb
-	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
+	# wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/yosys_$(YOSYS_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/synlig_$(SYNLIG_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/verilator_$(VERILATOR_VERSION)_amd64.deb
