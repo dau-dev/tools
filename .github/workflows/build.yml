@@ -30,14 +30,14 @@ permissions:
 jobs:
   initialize:
     runs-on:
-      - ubuntu-22.04
+      - ubuntu-24.04 # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
 
     outputs:
       RELEASE: ${{ steps.setuppush.outputs.RELEASE || steps.setupmanual.outputs.RELEASE }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Display and Setup Build Args (Push)
         id: setuppush
@@ -65,7 +65,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-22.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
+          - ubuntu-24.04 # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
 
     runs-on: ${{ matrix.os }}
 
@@ -157,7 +157,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-22.04 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
+          - ubuntu-24.04 # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
 
     runs-on: ${{ matrix.os }}
 
@@ -277,15 +277,15 @@ jobs:
     if: ${{ needs.initialize.outputs.RELEASE == 'true' }}
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact-deb
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact-deb-verible
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact-deb-surfer
 

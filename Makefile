@@ -86,6 +86,9 @@ OPENFPGALOADER_VERSION := 0.13.1
 SIMVIEW_VERSION := 0.0.1
 SURFER_VERSION := 0.0.1
 
+# TODO
+VERIBLE_TAG := v0.0-3960-g1f2b094d
+
 #####################################################################################################################################################################################################################################################################################
 RELEASE_VERSION := 0.0.1
 
@@ -368,8 +371,7 @@ surelog/debian:  ## build debian package for surelog
 #
 .PHONY: verible/libs verible verible/install verible/debian
 verible/.git:
-	# git clone --depth 1 --branch v$(VERIBLE_VERSION) https://github.com/chipsalliance/verible.git
-	git clone --depth 1 --branch master https://github.com/chipsalliance/verible.git
+	git clone --depth 1 --branch $(VERIBLE_TAG) https://github.com/chipsalliance/verible.git
 
 verible/libs: verible/.git
 	cd verible && bazel build -c opt //...
