@@ -279,7 +279,7 @@ antlr/debian:  ## build debian package for antlr
 #
 # https://github.com/chipsalliance/UHDM
 #
-.PHONY: uhdm/build_shared uhdm/build_static uhdm uhdm/install uhdm/debian uhdm/rpm
+.PHONY: uhdm/build_shared uhdm/build_static uhdm uhdm/install uhdm/debian
 
 UHDM_CMAKE_ARGS := -DUHDM_USE_HOST_GTEST=ON -DUHDM_USE_HOST_CAPNP=ON -DUHDM_BUILD_TESTS=OFF
 
@@ -309,11 +309,6 @@ uhdm/debian:  ## build debian package for uhdm
 	mkdir -p uhdm/debian/DEBIAN
 	printf "Package: uhdm\nVersion: $(UHDM_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: UHDM\n" > uhdm/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build uhdm/debian uhdm_$(UHDM_VERSION)_amd64.deb
-
-uhdm/rpm:  ## build rpm package for uhdm
-	mkdir -p uhdm/rpm
-	printf "Name: uhdm\nVersion: $(UHDM_VERSION)\nLicense: Apache-2\nRelease: 1%%{?dist}\nSummary: UHDM\nPackager: timkpaine <t.paine154@gmail.com>\nBuildArch: x86_64\n\n%%description\nUHDM\n\n%%setup\n\n%%build\n\n%%install\n\n%%clean\n\n%%post\n\n%%files\n%%{_bindir}/%%name\n\n%%changelog\n" > uhdm/rpm/uhdm.spec
-
 
 #####################################################################################################################################################################################################################################################################################
 #   _____                _
@@ -440,7 +435,7 @@ yosys/debian:  ## build debian package for yosys
 #
 # https://github.com/trabucayre/openFPGALoader
 #
-.PHONY: openfpgaloader/libs openfpgaloader openfpgaloader/install openfpgaloader/debian
+.PHONY: openfpgaloader/libs openfpgaloader openfpgaloader/install openfpgaloader/debian openfpgaloader/rpm
 
 openfpgaloader/.git:
 	git clone --depth 1 --branch v$(OPENFPGALOADER_VERSION) https://github.com/trabucayre/openFPGALoader.git openfpgaloader
@@ -468,6 +463,27 @@ openfpgaloader/debian:  ## build debian package for openfpgaloader
 	mkdir -p openfpgaloader/debian/DEBIAN
 	printf "Package: openfpgaloader\nVersion: $(OPENFPGALOADER_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: openfpgaloader\n" > openfpgaloader/debian/DEBIAN/control
 	dpkg-deb -Z"gzip" --root-owner-group --build openfpgaloader/debian openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
+
+openfpgaloader/rpm:  ## build rpm package for openfpgaloader
+	tar cfz openfpgaloader-$(OPENFPGALOADER_VERSION).tar.gz --exclude openfpgaloader/rpm --exclude openfpgaloader/debian openfpgaloader
+	mkdir -p openfpgaloader/rpm/SOURCES openfpgaloader/rpm/SPECS
+	cp openfpgaloader-$(OPENFPGALOADER_VERSION).tar.gz openfpgaloader/rpm/SOURCES/
+	printf 'Name: openfpgaloader\nVersion: $(OPENFPGALOADER_VERSION)\nRelease: 1%%{?dist}\nSummary: openfpgaloader\nExclusiveArch: x86_64\nLicense: Apache-2.0\nSource0: %%{name}-%%{version}.tar.gz\nRequires: bash\n%%description\nopenfpgaloader\n' > openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf '%%prep\n' >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf '%%setup -q\n' >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf '%%build\nrm -rf $$RPM_BUILD_ROOT\n' >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf "cmake $(CMAKE_COMMON_ARGS_SHARED) -DCMAKE_INSTALL_PREFIX=\$$RPM_BUILD_ROOT .\n" >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf "cmake $(CMAKE_BUILD_ARGS_SHARED) -DCMAKE_INSTALL_PREFIX=\$$RPM_BUILD_ROOT\n" >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf "cmake $(CMAKE_COMMON_ARGS_STATIC) -DCMAKE_INSTALL_PREFIX=\$$RPM_BUILD_ROOT .\n" >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf "cmake $(CMAKE_BUILD_ARGS_STATIC) -DCMAKE_INSTALL_PREFIX=\$$RPM_BUILD_ROOT\n" >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf '%%install\n' >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf "cmake $(CMAKE_INSTALL_ARGS_SHARED)\n" >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf "cmake $(CMAKE_INSTALL_ARGS_STATIC)\n" >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf '%%files\n%%{_libdir}/*.so\n%%{_libdir}/*.a' >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	printf '%%clean\nrm -rf $$RPM_BUILD_ROOT' >> openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	cat openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	rpmlint openfpgaloader/rpm/SPECS/openfpgaloader.spec
+	rpmbuild openfpgaloader/rpm/SPECS/openfpgaloader.spec --buildroot openfpgaloader/rpm
 
 #####################################################################################################################################################################################################################################################################################
 #                  _ _
@@ -636,15 +652,19 @@ clean:  ## Delete all built repos
 	rm -rf googletest
 	rm -rf capnproto
 	rm -rf json
-	rm -rf antlr4
+	rm -rf antlr
 	rm -rf uhdm
 	rm -rf surelog
+	rm -rf simview 
 	rm -rf synlig
 	rm -rf verible
 	rm -rf yosys
 	rm -rf openfpgaloader
 	rm -rf surfer
-
+	rm -rf verilator 
+	rm -rf ./*.tar.gz
+	rm -rf ./*.deb
+	rm -rf ./*.rpm
 
 .DEFAULT_GOAL := help
 .PHONY: help
