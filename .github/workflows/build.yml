@@ -138,12 +138,12 @@ jobs:
       - name: Build - verilator
         run: make verilator/debian
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: artifact-deb
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@v4
+      # - uses: actions/upload-artifact@v5
       #   with:
       #     name: artifact-rpm
       #     path: |
@@ -194,12 +194,12 @@ jobs:
         env:
           USE_BAZEL_VERSION: 6.4.0
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: artifact-deb-verible
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@v4
+      # - uses: actions/upload-artifact@v5
       #   with:
       #     name: artifact-rpm
       #     path: |
@@ -248,12 +248,12 @@ jobs:
       - name: Build - surfer
         run: make surfer/debian
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: artifact-deb-surfer
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@v4
+      # - uses: actions/upload-artifact@v5
       #   with:
       #     name: artifact-rpm
       #     path: |
