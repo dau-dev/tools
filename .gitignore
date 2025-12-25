@@ -15,3 +15,5 @@ yosys
 
 *.deb
 *.rpm
+*.tar.gz
+
