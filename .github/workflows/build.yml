@@ -86,7 +86,7 @@ jobs:
         run: pip install orderedmultidict
 
       - name: Global Dependencies
-        run: sudo apt install bison flex libfl-dev libftdi1-2 libftdi1-dev libhidapi-hidraw0 libhidapi-dev libreadline-dev libudev-dev tcl-dev zlib1g-dev
+        run: sudo apt install bison flex libfl-dev libftdi1-2 libftdi1-dev libhidapi-hidraw0 libhidapi-dev libreadline-dev libudev-dev rpm rpmlint tcl-dev zlib1g-dev
 
       - name: Configure shell for CCache
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
@@ -95,7 +95,9 @@ jobs:
         run: make googletest/install
 
       - name: Build - openFPGALoader
-        run: make openfpgaloader/debian
+        run: |
+          make openfpgaloader/debian
+          make openfpgaloader/rpm
 
       - name: Build - capnproto
         run: |
@@ -178,7 +180,7 @@ jobs:
           override: true
 
       - name: Global Dependencies
-        run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
+        run: sudo apt install bison flex libfl-dev libreadline-dev rpm rpmlint tcl-dev
 
       - name: Install Bazel
         uses: bazelbuild/setup-bazelisk@v3
@@ -234,7 +236,7 @@ jobs:
           override: true
 
       - name: Global Dependencies
-        run: sudo apt install bison flex libfl-dev libreadline-dev tcl-dev
+        run: sudo apt install bison flex libfl-dev libreadline-dev rpm rpmlint tcl-dev
 
       - name: Install Bazel
         uses: bazelbuild/setup-bazelisk@v3
