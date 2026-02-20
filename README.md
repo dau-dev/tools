@@ -14,8 +14,7 @@ Software Tools
 | surfer         | [surfer-project/surfer](https://gitlab.com/surfer-project/surfer)         | N/A                | amd64 | deb      |
 | UHDM           | [chipsalliance/uhdm](https://github.com/chipsalliance/uhdm)               | 1.80               | amd64 | deb      |
 | Verible        | [chipsalliance/verible](https://github.com/chipsalliance/verible)         | 0.0-3430-g060bde0f | amd64 | deb      |
-| verilator      | [verilator/verilator](https://github.com/verilator/verilator)             | 5.034              |       |          |
+| verilator      | [verilator/verilator](https://github.com/verilator/verilator)             | 5.044              |       |          |
 | yosys          | [YosysHQ/yosys](https://github.com/YosysHQ/yosys)                         | 0.51               | amd64 | deb      |
-
 
 <!-- | simview        | [pieter3d/simview](https://github.com/pieter3d/simview)                   | N/A                | amd64 | deb      | -->
