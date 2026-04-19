@@ -290,7 +290,7 @@ jobs:
           name: artifact-deb-surfer
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           fail_on_unmatched_files: true
           prerelease: true
