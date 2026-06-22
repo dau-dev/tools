@@ -15,3 +15,7 @@ yosys
 
 *.deb
 *.rpm
+
+AGENTS.md
+ROADMAP.md
+
