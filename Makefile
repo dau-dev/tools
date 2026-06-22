@@ -80,7 +80,8 @@ UHDM_VERSION := 1.84
 SURELOG_VERSION := 1.84
 VERIBLE_VERSION := 0.1.0
 YOSYS_VERSION := 0.62
-SYNLIG_VERSION := 2024-11-29-10efd31
+SLANG_COMMIT := d5e8d8558e
+SLANG_VERSION := 0.0-g$(SLANG_COMMIT)
 VERILATOR_VERSION := 5.044
 OPENFPGALOADER_VERSION := 0.13.1
 SIMVIEW_VERSION := 0.0.1
@@ -101,7 +102,7 @@ download:  ## Download all releases
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/surelog_$(SURELOG_VERSION)_amd64.deb
 	# wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/yosys_$(YOSYS_VERSION)_amd64.deb
-	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/synlig_$(SYNLIG_VERSION)_amd64.deb
+	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/yosys-slang_$(SLANG_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/verilator_$(VERILATOR_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
 	wget https://github.com/dau-dev/tools/releases/download/v$(RELEASE_VERSION)/simview_$(SIMVIEW_VERSION)_amd64.deb
@@ -470,47 +471,31 @@ openfpgaloader/debian:  ## build debian package for openfpgaloader
 	dpkg-deb -Z"gzip" --root-owner-group --build openfpgaloader/debian openfpgaloader_$(OPENFPGALOADER_VERSION)_amd64.deb
 
 #####################################################################################################################################################################################################################################################################################
-#                  _ _
-#                 | (_)
-#  ___ _   _ _ __ | |_  __ _
-# / __| | | | '_ \| | |/ _` |
-# \__ \ |_| | | | | | | (_| |
-# |___/\__, |_| |_|_|_|\__, |
-#       __/ |           __/ |
-#      |___/           |___/
+# yosys-slang
 #
-# https://github.com/chipsalliance/synlig
+# https://github.com/povik/yosys-slang
 #
-.PHONY: synlig/build synlig synlig/install synlig/debian
-SYNLIG_CMAKE_ARGS := \
-	-DSYNLIG_USE_HOST_SURELOG=ON \
-	-DSYNLIG_USE_HOST_CAPNP=ON \
-	-DSYNLIG_USE_HOST_GTEST=ON \
-	-DSYNLIG_USE_HOST_YOSYS=OFF \
-	-DYOSYS_CONFIG=yosys-config \
-	-DYOSYS_PATH=$(shell yosys-config --datdir)/include \
-	-DSYNLIG_WITH_TCMALLOC=OFF \
-	-DSYNLIG_WITH_ZLIB=ON
+.PHONY: yosys-slang/build yosys-slang yosys-slang/install yosys-slang/debian
 
-synlig/.git:
-	git clone --depth 1 --branch $(SYNLIG_VERSION) https://github.com/chipsalliance/synlig.git
+yosys-slang/.git:
+	git clone --recursive https://github.com/povik/yosys-slang.git
+	cd yosys-slang && git checkout $(SLANG_COMMIT) && git submodule update --init --recursive
 
-synlig/build: synlig/.git
-	echo "cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) ."
-	cd synlig && cmake $(SYNLIG_CMAKE_ARGS) $(CMAKE_COMMON_ARGS_SHARED) .
-	cd synlig && cmake $(CMAKE_BUILD_ARGS_SHARED)
+yosys-slang/build: yosys-slang/.git
+	cd yosys-slang && cmake -S . -B build -DYOSYS_CONFIG=yosys-config -DCMAKE_BUILD_TYPE=Release
+	cd yosys-slang && cmake --build build -j $(NPROC)
 
-synlig: synlig/build  ## build synlig
+yosys-slang: yosys-slang/build  ## build yosys-slang
 
-synlig/install: synlig/build  ## build and install synlig
-	cd synlig && $(SUDO) cmake $(CMAKE_INSTALL_ARGS_SHARED)
+yosys-slang/install: yosys-slang/build  ## build and install yosys-slang
+	cd yosys-slang && $(SUDO) cmake --install build
 
-synlig/debian:  ## build debian package for synlig
-	$(MAKE) synlig/build
-	mkdir -p synlig/debian/DEBIAN
-	printf "Package: synlig\nVersion: $(SYNLIG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: synlig\n" > synlig/debian/DEBIAN/control
-	cp -r synlig/out/current/* synlig/debian/
-	dpkg-deb -Z"gzip" --root-owner-group --build synlig/debian synlig_$(SYNLIG_VERSION)_amd64.deb
+yosys-slang/debian:  ## build debian package for yosys-slang
+	$(MAKE) yosys-slang/build
+	mkdir -p yosys-slang/debian/DEBIAN
+	cd yosys-slang && DESTDIR=$(CURDIR)/yosys-slang/debian cmake --install build
+	printf "Package: yosys-slang\nVersion: $(SLANG_VERSION)\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: timkpaine <t.paine154@gmail.com>\nDescription: yosys-slang\n" > yosys-slang/debian/DEBIAN/control
+	dpkg-deb -Z"gzip" --root-owner-group --build yosys-slang/debian yosys-slang_$(SLANG_VERSION)_amd64.deb
 
 
 
@@ -639,7 +624,7 @@ clean:  ## Delete all built repos
 	rm -rf antlr4
 	rm -rf uhdm
 	rm -rf surelog
-	rm -rf synlig
+	rm -rf yosys-slang
 	rm -rf verible
 	rm -rf yosys
 	rm -rf openfpgaloader

@@ -132,8 +132,8 @@ jobs:
           make yosys/install
           make yosys/debian
 
-      - name: Build - synlig
-        run: make synlig/debian
+      - name: Build - yosys-slang
+        run: make yosys-slang/debian
 
       - name: Build - verilator
         run: make verilator/debian

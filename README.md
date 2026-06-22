@@ -16,5 +16,6 @@ Software Tools
 | Verible        | [chipsalliance/verible](https://github.com/chipsalliance/verible)         | 0.0-3430-g060bde0f | amd64 | deb      |
 | verilator      | [verilator/verilator](https://github.com/verilator/verilator)             | 5.044              |       |          |
 | yosys          | [YosysHQ/yosys](https://github.com/YosysHQ/yosys)                         | 0.62               | amd64 | deb      |
+| yosys-slang    | [povik/yosys-slang](https://github.com/povik/yosys-slang)                 | 0.0-gd5e8d8558e    | amd64 | deb      |
 
 <!-- | simview        | [pieter3d/simview](https://github.com/pieter3d/simview)                   | N/A                | amd64 | deb      | -->
