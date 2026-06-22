@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Display and Setup Build Args (Push)
         id: setuppush
@@ -70,7 +70,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Use ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -138,12 +138,12 @@ jobs:
       - name: Build - verilator
         run: make verilator/debian
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact-deb
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@v6
+      # - uses: actions/upload-artifact@v7
       #   with:
       #     name: artifact-rpm
       #     path: |
@@ -162,7 +162,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -194,12 +194,12 @@ jobs:
         env:
           USE_BAZEL_VERSION: 6.4.0
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact-deb-verible
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@v6
+      # - uses: actions/upload-artifact@v7
       #   with:
       #     name: artifact-rpm
       #     path: |
@@ -218,7 +218,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -248,12 +248,12 @@ jobs:
       - name: Build - surfer
         run: make surfer/debian
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact-deb-surfer
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@v6
+      # - uses: actions/upload-artifact@v7
       #   with:
       #     name: artifact-rpm
       #     path: |
@@ -277,20 +277,20 @@ jobs:
     if: ${{ needs.initialize.outputs.RELEASE == 'true' }}
 
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: artifact-deb
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: artifact-deb-verible
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: artifact-deb-surfer
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           fail_on_unmatched_files: true
           prerelease: true
