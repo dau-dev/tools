@@ -522,6 +522,14 @@ verilator/build_static: verilator/.git
 	cd verilator && echo "CXX = c++" >> build_static/include/verilated.mk
 	cd verilator && echo "LINK = c++" >> build_static/include/verilated.mk
 	cd verilator && echo "PYTHON3 = python" >> build_static/include/verilated.mk
+	# The cmake build leaves CFG_CXXFLAGS_STD empty where the autoconf build
+	# would detect it, so nothing puts a -std flag on CPPFLAGS. Anything using
+	# --timing then fails to compile: verilated_timing.h includes <coroutine>,
+	# and gcc refuses that below C++20 with "requires -fcoroutines". Patch the
+	# assignment rather than appending one, so it holds regardless of how the
+	# CPPFLAGS += line expands.
+	cd verilator && sed -i 's|^CFG_CXXFLAGS_STD = $$|CFG_CXXFLAGS_STD = -std=gnu++20|' build_static/include/verilated.mk
+	cd verilator && grep -q '^CFG_CXXFLAGS_STD = -std=' build_static/include/verilated.mk
 
 verilator: verilator/build_static  ## build verilator
 
