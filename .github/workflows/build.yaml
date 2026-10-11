@@ -250,6 +250,10 @@ jobs:
     runs-on: ubuntu-24.04
     container: quay.io/pypa/manylinux_2_28_x86_64
 
+    # the image's CMake 4 refuses projects that declare a minimum below 3.5
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
