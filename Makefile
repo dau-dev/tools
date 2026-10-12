@@ -68,9 +68,11 @@ SUDO:=sudo
 # Package the tree a <name>/stage target staged under <name>/debian/usr as a
 # binary rpm in the current directory: $(call rpm,<name>,<version>,<license>).
 # rpm versions cannot hold a hyphen, so one becomes a dot.
+# It lists files and symlinks only: EL's filesystem package owns /usr/local
+# and its standard subdirectories.
 define rpm
 	mkdir -p $(1)/rpm/SPECS
-	printf 'Name: $(1)\nVersion: $(subst -,.,$(2))\nRelease: 1\nSummary: $(1)\nLicense: $(3)\nPackager: timkpaine <t.paine154@gmail.com>\n\n%%description\n$(1)\n\n%%install\ncp -a $(CURDIR)/$(1)/debian/usr %%{buildroot}/\n\n%%files\n%%defattr(-,root,root,-)\n/usr/local/*\n' > $(1)/rpm/SPECS/$(1).spec
+	printf 'Name: $(1)\nVersion: $(subst -,.,$(2))\nRelease: 1\nSummary: $(1)\nLicense: $(3)\nPackager: timkpaine <t.paine154@gmail.com>\n\n%%description\n$(1)\n\n%%install\ncp -a $(CURDIR)/$(1)/debian/usr %%{buildroot}/\ncd %%{buildroot} && find usr -type f -o -type l | sed s,^,/, > %%{_builddir}/$(1).files\n\n%%files -f %%{_builddir}/$(1).files\n%%defattr(-,root,root,-)\n' > $(1)/rpm/SPECS/$(1).spec
 	rpmbuild -bb --define '_topdir $(CURDIR)/$(1)/rpm' --define 'debug_package %{nil}' --define '__os_install_post %{nil}' --define '_build_id_links none' $(1)/rpm/SPECS/$(1).spec
 	cp $(1)/rpm/RPMS/*/$(1)-$(subst -,.,$(2))-1.*.rpm .
 endef
