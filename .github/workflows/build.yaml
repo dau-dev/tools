@@ -143,13 +143,6 @@ jobs:
           name: artifact-deb
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      #   with:
-      #     name: artifact-rpm
-      #     path: |
-      #       ./*.rpm
-      #       !./*-debuginfo-*.rpm
-
   build-linux-packages-verible:
     needs:
       - initialize
@@ -199,13 +192,6 @@ jobs:
           name: artifact-deb-verible
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      #   with:
-      #     name: artifact-rpm
-      #     path: |
-      #       ./*.rpm
-      #       !./*-debuginfo-*.rpm
-
   build-linux-packages-surfer:
     needs:
       - initialize
@@ -253,12 +239,155 @@ jobs:
           name: artifact-deb-surfer
           path: ./*.deb
 
-      # - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      #   with:
-      #     name: artifact-rpm
-      #     path: |
-      #       ./*.rpm
-      #       !./*-debuginfo-*.rpm
+  # rpms build in the manylinux container the python packages build their
+  # wheels in (AlmaLinux 8, glibc 2.28), so they install on RHEL 8 and newer.
+  # The container runs as root and its sudo drops /usr/local/bin from PATH,
+  # so every make call passes SUDO= instead.
+  build-linux-rpms:
+    needs:
+      - initialize
+
+    runs-on: ubuntu-24.04
+    container: quay.io/pypa/manylinux_2_28_x86_64
+
+    # the image's CMake 4 refuses projects that declare a minimum below 3.5
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Global Dependencies
+        run: dnf install -y ccache flex flex-devel help2man hidapi-devel java-17-openjdk-headless libffi-devel libftdi-devel libusb1-devel m4 readline-devel rpm-build systemd-devel tcl-devel wget zlib-devel
+
+      # yosys needs bison 3.6 or newer and EL8 ships 3.0.4
+      - name: Install bison
+        run: |
+          curl -sL https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.xz | tar xJ -C /tmp
+          cd /tmp/bison-3.8.2 && ./configure --prefix=/usr/local && make -j $(nproc) && make install
+
+      # the image's /usr/bin/python3 has no pip; its own interpreters do
+      - name: Install python dependencies
+        run: |
+          echo /opt/python/cp312-cp312/bin >> $GITHUB_PATH
+          /opt/python/cp312-cp312/bin/python -m pip install orderedmultidict
+
+      - name: Configure CCache
+        run: echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" >> $GITHUB_ENV
+
+      - name: Use ccache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: .ccache
+          key: rpm-ccache-${{ github.sha }}
+          restore-keys: rpm-ccache-
+
+      - name: Build - googletest
+        run: make googletest/install SUDO=
+
+      - name: Build - openFPGALoader
+        run: make openfpgaloader/rpm SUDO=
+
+      - name: Build - capnproto
+        run: |
+          make capnproto/install SUDO=
+          make capnproto/rpm SUDO=
+
+      - name: Build - json
+        run: |
+          make json/install SUDO=
+          make json/rpm SUDO=
+
+      - name: Build - antlr
+        run: |
+          make antlr/install SUDO=
+          make antlr/rpm SUDO=
+
+      - name: Build - uhdm
+        run: |
+          make uhdm/install SUDO=
+          make uhdm/rpm SUDO=
+
+      - name: Build - surelog
+        run: |
+          make surelog/install SUDO=
+          make surelog/rpm SUDO=
+
+      - name: Build - yosys
+        run: |
+          make yosys/install SUDO=
+          make yosys/rpm SUDO=
+
+      - name: Build - yosys-slang
+        run: make yosys-slang/rpm SUDO=
+
+      - name: Build - verilator
+        run: make verilator/rpm SUDO=
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: artifact-rpm
+          path: ./*.rpm
+
+  build-linux-rpms-verible:
+    needs:
+      - initialize
+
+    runs-on: ubuntu-24.04
+    container: quay.io/pypa/manylinux_2_28_x86_64
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Global Dependencies
+        run: dnf install -y rpm-build
+
+      - name: Install Bazel
+        uses: bazelbuild/setup-bazelisk@b39c379c82683a5f25d34f0d062761f62693e0b2 # v3.0.0
+
+      - name: Mount bazel cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: "~/.cache/bazel"
+          key: bazel-rpm
+
+      - name: Build - verible
+        run: make verible/rpm SUDO=
+        env:
+          USE_BAZEL_VERSION: 6.4.0
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: artifact-rpm-verible
+          path: ./*.rpm
+
+  build-linux-rpms-surfer:
+    needs:
+      - initialize
+
+    runs-on: ubuntu-24.04
+    container: quay.io/pypa/manylinux_2_28_x86_64
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Global Dependencies
+        run: dnf install -y rpm-build
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build - surfer
+        run: make surfer/rpm SUDO=
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: artifact-rpm-surfer
+          path: ./*.rpm
 
   create-release:
     needs:
@@ -266,6 +395,9 @@ jobs:
       - build-linux-packages
       - build-linux-packages-verible
       - build-linux-packages-surfer
+      - build-linux-rpms
+      - build-linux-rpms-verible
+      - build-linux-rpms-surfer
 
     strategy:
       matrix:
@@ -289,9 +421,23 @@ jobs:
         with:
           name: artifact-deb-surfer
 
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: artifact-rpm
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: artifact-rpm-verible
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: artifact-rpm-surfer
+
       - name: Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           fail_on_unmatched_files: true
           prerelease: true
-          files: './*.deb'
+          files: |
+            ./*.deb
+            ./*.rpm
