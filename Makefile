@@ -66,13 +66,15 @@ endif
 SUDO:=sudo
 
 # Package the tree a <name>/stage target staged under <name>/debian/usr as a
-# binary rpm in the current directory: $(call rpm,<name>,<version>,<license>).
-# rpm versions cannot hold a hyphen, so one becomes a dot.
-# It lists files and symlinks only: EL's filesystem package owns /usr/local
-# and its standard subdirectories.
+# binary rpm in the current directory:
+#   $(call rpm,<name>,<version>,<license>[,<requires>])
+# rpm versions cannot hold a hyphen, so one becomes a dot. The spec lists files
+# and symlinks only, because EL's filesystem package owns /usr/local and its
+# standard subdirectories. EL does not search /usr/local/lib for shared
+# libraries, so a package that installs some there adds it to ld.so.conf.d.
 define rpm
 	mkdir -p $(1)/rpm/SPECS
-	printf 'Name: $(1)\nVersion: $(subst -,.,$(2))\nRelease: 1\nSummary: $(1)\nLicense: $(3)\nPackager: timkpaine <t.paine154@gmail.com>\n\n%%description\n$(1)\n\n%%install\ncp -a $(CURDIR)/$(1)/debian/usr %%{buildroot}/\ncd %%{buildroot} && find usr -type f -o -type l | sed s,^,/, > %%{_builddir}/$(1).files\n\n%%files -f %%{_builddir}/$(1).files\n%%defattr(-,root,root,-)\n' > $(1)/rpm/SPECS/$(1).spec
+	printf 'Name: $(1)\nVersion: $(subst -,.,$(2))\nRelease: 1\nSummary: $(1)\nLicense: $(3)\n$(if $(4),Requires: $(4)\n)Packager: timkpaine <t.paine154@gmail.com>\n\n%%description\n$(1)\n\n%%install\ncp -a $(CURDIR)/$(1)/debian/usr %%{buildroot}/\ncd %%{buildroot}\nif ls usr/local/lib/*.so* >/dev/null 2>&1; then mkdir -p etc/ld.so.conf.d && echo /usr/local/lib > etc/ld.so.conf.d/$(1).conf; fi\nfind * -type f -o -type l | sed s,^,/, > %%{_builddir}/$(1).files\n\n%%post -p /sbin/ldconfig\n\n%%postun -p /sbin/ldconfig\n\n%%files -f %%{_builddir}/$(1).files\n%%defattr(-,root,root,-)\n' > $(1)/rpm/SPECS/$(1).spec
 	rpmbuild -bb --define '_topdir $(CURDIR)/$(1)/rpm' --define 'debug_package %{nil}' --define '__os_install_post %{nil}' --define '_build_id_links none' $(1)/rpm/SPECS/$(1).spec
 	cp $(1)/rpm/RPMS/*/$(1)-$(subst -,.,$(2))-1.*.rpm .
 endef
@@ -602,7 +604,7 @@ verilator/debian: verilator/stage  ## build debian package for verilator
 	dpkg-deb -Z"gzip" --root-owner-group --build verilator/debian verilator_$(VERILATOR_VERSION)_amd64.deb
 
 verilator/rpm: verilator/stage  ## build rpm package for verilator
-	$(call rpm,verilator,$(VERILATOR_VERSION),LGPL-3.0-only OR Artistic-2.0)
+	$(call rpm,verilator,$(VERILATOR_VERSION),LGPL-3.0-only OR Artistic-2.0,perl)
 
 
 
